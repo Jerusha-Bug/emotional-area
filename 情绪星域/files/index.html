@@ -1,0 +1,2670 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>情绪星域</title>
+    <style>
+        @font-face {
+            font-family: 'AaHouDiHei';
+            src: url('./fonts/AaHouDiHei.ttf') format('truetype'),
+                 url('./fonts/AaHouDiHei.woff2') format('woff2');
+        }
+        :root {
+            --bg-top: #2c2541;
+            --bg-mid: #685066;
+            --bg-bottom: #d38d74;
+            --bg-horizon: #f5c490;
+            --text-color: #fff9f2;
+            --font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --accent: #ffdcb4;
+            --card-white: #ffffff;
+            --card-accent: #ffb020;
+            --card-dot-idle: #c4c4c4;
+            --card-title: #1a1a1a;
+            --card-body: #4a4a4a;
+            --card-muted: #8a8a8a;
+            --dialog-font: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --wf-cream: #fffaf4;
+            --wf-cream-soft: rgba(255, 250, 244, 0.82);
+            --wf-purple: #2f2373;
+            --wf-yellow: #ffdc73;
+            --wf-text: rgba(0, 0, 0, 0.75);
+            --wf-muted: #8a8580;
+            --wf-overlay: rgba(0, 0, 0, 0.25);
+            --wf-radius-panel: 100px;
+            --wf-radius-card: 48px;
+            --wf-radius-btn: 27.5px;
+            --nav-h: 64px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-drag: none; }
+
+        body, html {
+            width: 100%; height: 100%; min-height: 100vh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            font-family: var(--font-family);
+            background:
+                linear-gradient(rgba(0,0,0,0.30), rgba(0,0,0,0.30)),
+                url("images/background.webp");
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            touch-action: none;
+            color: var(--wf-text);
+        }
+
+        /* ─── 背景 ─── */
+        #background {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none; overflow: hidden;
+        }
+        #background::after { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.30); pointer-events: none; }
+        .halo {
+            position: absolute; bottom: -20%; left: 50%; transform: translateX(-50%);
+            width: 150vw; height: 80vw;
+            background: radial-gradient(ellipse at center, rgba(255,230,180,.35) 0%, rgba(255,160,100,.1) 50%, transparent 70%);
+            filter: blur(50px);
+        }
+        .watercolor-cloud {
+            position: absolute; background: rgba(255,235,215,.1); border-radius: 200px;
+            filter: blur(25px); animation: drift linear infinite;
+        }
+        .watercolor-cloud::before, .watercolor-cloud::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
+        .watercolor-cloud::before { width: 60%; height: 150%; top: -50%; left: 15%; }
+        .watercolor-cloud::after  { width: 50%; height: 120%; top: -20%; right: 10%; }
+        @keyframes drift { from { transform: translateX(-200px); } to { transform: translateX(120vw); } }
+        .stars {
+            position: absolute; width: 100%; height: 100%;
+            background-image:
+                radial-gradient(1.5px 1.5px at 20px  30px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px   2px   at 80px  70px, #ffe4c4, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 150px 160px, #fff, rgba(0,0,0,0));
+            background-size: 300px 300px; opacity: .5;
+        }
+
+        /* ─── 顶部导航栏─── */
+        #top-nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 3000; display: none;
+            align-items: center; justify-content: space-between;
+            padding: 0 48px; height: 64px; --nav-h: 64px;
+            background: transparent;
+        }
+        #top-nav.is-visible { display: flex; }
+        .nav-logo { font-size: 14px; font-weight: 700; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: .08em; color: var(--wf-cream); text-shadow: 0 1px 4px rgba(0,0,0,.4); }
+        .nav-links { display: flex; gap: 40px; align-items: center; }
+        .nav-link { font-size: 14px; font-weight: 500; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: .06em; color: rgba(255,250,244,.75); cursor: pointer; background: none; border: none; padding: 6px 0; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s; }
+        .nav-link:hover, .nav-link.active { color: var(--wf-cream); border-bottom-color: var(--wf-yellow); }
+        .nav-hamburger { display: none; flex-direction: column; justify-content: center; align-items: center; gap: 5px; width: 40px; height: 40px; background: none; border: none; cursor: pointer; border-radius: 8px; }
+        .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--wf-cream); border-radius: 2px; transition: transform .3s, opacity .3s; }
+        .nav-hamburger.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .nav-hamburger.is-open span:nth-child(2) { opacity: 0; }
+        .nav-hamburger.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+        @media (max-width: 600px) {
+            #top-nav { padding: 0 20px; }
+            .nav-hamburger { display: flex; }
+            .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; background: rgba(255,250,244,.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(47,35,115,.12); padding: 8px 0 16px; z-index: 2999; }
+            .nav-links.is-open { display: flex; }
+            .nav-link { width: 100%; padding: 14px 24px; text-align: left; border-bottom: none; border-left: 3px solid transparent; font-size: 15px; color: var(--wf-purple); }
+            .nav-link:hover, .nav-link.active { border-bottom-color: transparent; border-left-color: var(--wf-purple); background: rgba(47,35,115,.06); }
+        }
+
+        /* ─── 场景基础 ─── */
+        .scene {
+            position: absolute; inset: 0; z-index: 20;
+            display: none; opacity: 0; transition: opacity .5s ease;
+            pointer-events: none;
+        }
+        .scene.is-active { display: block; opacity: 1; pointer-events: auto; }
+
+        /* ─── 连接场景 ─── */
+        #connect-scene {
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .wf-hero-panel {
+            width: min(1120px, 100%);
+            min-height: min(778px, max(60vh, 420px));
+            background: var(--wf-cream-soft);
+            border-radius: min(100px, 12vw);
+            padding: clamp(24px,4vw,48px);
+            display: flex; flex-wrap: wrap; gap: 32px;
+            align-items: center; justify-content: center;
+            box-shadow: 0 24px 80px rgba(0,0,0,.18);
+            border: 1px solid rgba(255,250,244,.5);
+        }
+        .wf-hero-copy { flex: 1 1 280px; max-width: 520px; }
+        .wf-hero-title {
+            font-size: clamp(26px,4vw,40px);
+            font-family: 'AaHouDiHei', 'PingFang SC', sans-serif;
+            font-weight: 500; letter-spacing: .06em;
+            color: var(--wf-purple); line-height: 1.3; margin-bottom: 16px;
+        }
+        .wf-hero-sub {
+            font-size: 15px;
+            line-height: 1.65;
+            color: var(--wf-text);
+            letter-spacing: .04em;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500;
+        }
+        .wf-connect-card {
+            flex: 1 1 300px; max-width: 480px;
+            background: var(--wf-cream);
+            border-radius: min(60px,8vw);
+            padding: clamp(28px,4vw,40px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+        }
+        .wf-btn-primary {
+            width: 100%; margin-top: 20px; padding: 16px 24px;
+            border: none; border-radius: var(--wf-radius-btn);
+            background: var(--wf-yellow); color: var(--wf-purple);
+            font-size: 16px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: bold;
+            letter-spacing: .1em;
+            cursor: pointer; box-shadow: 0 8px 24px rgba(255,220,115,.45);
+            transition: transform .2s, box-shadow .2s;
+        }
+        .wf-btn-primary:active { transform: scale(.98); }
+        .wf-btn-ghost {
+            margin-top: 12px; width: 100%; padding: 12px;
+            border: 1px dashed var(--wf-muted); border-radius: var(--wf-radius-btn);
+            background: transparent; color: var(--wf-text); font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .wf-wallet-hint { font-size: 12px; color: var(--wf-muted); margin-top: 12px; line-height: 1.5; }
+
+        /* ─── 轮播主场景─── */
+        #carousel-scene { z-index: 10; }
+
+        .carousel {
+            position: absolute;
+            left: 50%; top: 40%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: clamp(220px, 38vh, 400px);
+        }
+        .planet-wrap {
+            position: absolute;
+            left: 50%; top: 50%;
+            --p-size: clamp(120px, min(22vw,28vh), 240px);
+            width: var(--p-size); height: var(--p-size);
+            margin-left: calc(var(--p-size) / -2);
+            margin-top: calc(var(--p-size) / -2);
+            will-change: transform, opacity;
+            transition: transform .1s, opacity .1s;
+            cursor: pointer;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .planet-body {
+            position: relative; width: 100%; height: 100%; border-radius: 80%;
+            overflow: hidden; background: transparent;
+        }
+        .planet-body img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+        .planet-shadow {
+            position: absolute; bottom: -35px; width: 60%; height: 12px;
+            background: rgba(0,0,0,.35); border-radius: 50%; filter: blur(12px);
+        }
+
+        /* 星球名称 — 星球下方 32px、按钮上方居中*/
+        #planet-name-center {
+            position: absolute;
+            left: 50%;
+            bottom: calc(clamp(32px, 6vh, 72px) + 110px);
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        #planet-title {
+            font-size: clamp(36px, 5.5vw, 56px);
+            font-family: 'AaHouDiHei', 'PingFang SC', sans-serif;
+            font-weight: 500;
+            color: #fff;
+            letter-spacing: .08em;
+            text-shadow: 0 4px 24px rgba(0,0,0,.5);
+            line-height: 1;
+            transition: opacity .3s ease;
+        }
+        /* 副标题隐藏*/
+        #planet-subtitle { display: none; }
+
+        /* 进入星球按钮 — 底部大椭圆*/
+        #btn-planet-detail {
+            position: absolute;
+            bottom: clamp(32px, 6vh, 72px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(320px, 72%);
+            padding: 20px 40px;
+            border: none;
+            border-radius: 999px;
+            background: rgb(255, 220, 115);
+            color: var(--wf-purple);
+            font-size: 18px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: bold;
+            letter-spacing: .12em;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(0,0,0,.22);
+            transition: transform .2s, box-shadow .2s;
+        }
+        #btn-planet-detail:active { transform: translateX(-50%) scale(.97); }
+
+        /* ─── 详情场景（按 SVG 设计稿重做） ─── */
+        #detail-scene { z-index: 35; overflow: hidden; }
+        .detail-layout {
+            position: absolute;
+            inset: 64px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 80px;
+        }
+        /* 大圆角半透明外壳 */
+        .detail-shell {
+            width: min(920px, 100%);
+            height: min(600px, 88vh);
+            background: rgba(255,250,244,0.75);
+            border-radius: 80px;
+            display: flex;
+            overflow: visible;
+            box-shadow: 0 24px 80px rgba(0,0,0,.22);
+            border: 1px solid rgba(255,250,244,.55);
+            position: relative;
+        }
+
+        /* ── 左侧：星球插图+ 信息 ── */
+        .detail-left {
+            flex: 0 0 min(420px, 42%);
+            display: flex;
+            flex-direction: column;
+            border-radius: 80px 0 0 80px;
+            overflow: visible;
+            position: relative;
+        }
+        /* 插图区域，与右侧对话框顶部对齐，左侧与文字对齐*/
+        .detail-cat-img-area {
+            width: 100%;
+            height: 180px;
+            margin-top: 40px;
+            padding-left: 80px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .detail-cat-img-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: left bottom;
+            display: block;
+        }
+        /* 星球文字信息区*/
+        .detail-planet-info {
+            flex: 1;
+            padding: 32px 24px 40px 80px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: hidden;
+            min-height: 0;
+        }
+        .detail-planet-name {
+            font-family: 'AaHouDiHei', 'PingFang SC', sans-serif;
+            font-size: 44px;
+            font-weight: 500;
+            color: #9281BF;
+            letter-spacing: .02em;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+        .detail-card-subtitle {
+            font-size: 16px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500;
+            color: var(--wf-text);
+            margin-bottom: 16px;
+        }
+        .detail-card-divider {
+            width: 100%; height: 1px;
+            background: linear-gradient(to right, #e0dbf4 0%, transparent 100%);
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+        .detail-planet-desc {
+            font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500;
+            line-height: 28px;
+            color: var(--wf-text);
+            flex: 1;
+        }
+        .detail-mechanism {
+            font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 600;
+            color: var(--wf-text);
+            margin-top: 12px;
+            padding-top: 0;
+            padding-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        /* ── 右侧：对话示例+ 对话框── */
+        .detail-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 20px 40px 40px 32px;
+            min-width: 0;
+            border-radius: 0 60px 60px 0;
+            overflow: hidden;
+        }
+        /* 输入聚焦后：示例区折叠，对话框撑满 */
+        .detail-right.chat-expanded { gap: 0; }
+        .detail-right.chat-expanded .detail-box:first-child {
+            flex: 0 0 0;
+            opacity: 0;
+            overflow: hidden;
+            padding: 0;
+            transition: flex .3s ease, opacity .25s ease;
+        }
+        .detail-right.chat-expanded .detail-box:last-child {
+            flex: 1;
+            transition: flex .3s ease;
+        }
+        /* Back 按钮：展开对话后顶部出现 */
+        #btn-chat-back {
+            display: none;
+            align-items: center; justify-content: center;
+            width: 32px; height: 32px;
+            background: rgba(47,35,115,.08); border: none;
+            border-radius: 50%; cursor: pointer;
+            align-self: flex-start; margin-bottom: 10px;
+            transition: background .2s; flex-shrink: 0;
+        }
+        #btn-chat-back:hover { background: rgba(47,35,115,.16); }
+        .detail-right.chat-expanded #btn-chat-back { display: flex; }
+
+
+        .detail-box {
+            flex: 1;
+            background: rgb(255, 250, 244);
+            border-radius: 60px;
+            padding: 28px 32px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+            transition: flex .3s ease, opacity .25s ease, padding .3s ease;
+        }
+        .detail-box:first-child { flex: 2.2; background: transparent; padding: 0 32px; border-radius: 0; overflow: visible; }
+        .detail-box:last-child  { flex: 1.6; padding-top: 40px; padding-bottom: 20px; padding-left: 32px; padding-right: 32px; }
+        .detail-sample-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            overflow: visible;
+        }
+        .sample-desc {
+            font-size: 12px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 450;
+            line-height: 1.8;
+            color: var(--wf-text);
+            margin-bottom: 12px;
+        }
+        /* ── 示例对话区（精确按SVG 设计稿） ── */
+        .sample-dialog-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 11px; /* SVG 中气泡间距12px */
+        }
+        /* 气泡宽度随文字（fit-content），高度 42px，rx 21px */
+        .sample-dialog-line {
+            display: inline-block;
+            width: fit-content;
+            height: 40px;
+            line-height: 40px;
+            padding: 0 20px;
+            border-radius: 20px;
+            background: #FFFAF4;
+            font-size: 13px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500;
+            color: var(--wf-text);
+            white-space: nowrap;
+        }
+        /* "···" 小泡：宽度也随内容*/
+        .sample-dialog-more {
+            display: inline-block;
+            width: fit-content;
+            height: 42px;
+            line-height: 42px;
+            padding: 0 16px;
+            border-radius: 21px;
+            background: #FFFAF4;
+            font-size: 14px;
+            color: var(--wf-muted);
+        }
+        /* 你的状态：撑满全行，高度 44px，rx 22px，#9281BF 紫底白字 */
+        .sample-state {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            height: 44px;
+            line-height: 44px;
+            padding: 0 20px;
+            border-radius: 22px;
+            background: #9281BF;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        /* 引导提问（SVG 中高度 44px，rx 22px，rgba(241,235,228,.5) 底） */
+        #detail-hints { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+        .detail-hint-item {
+            display: inline-block;
+            width: fit-content;
+            height: 44px;
+            line-height: 44px;
+            padding: 0 20px;
+            border-radius: 22px;
+            background: rgba(241, 235, 228, 0.5);
+            font-size: 13px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            color: var(--wf-muted);
+            white-space: nowrap;
+        }
+        #detail-input-wrap {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        #detail-chat-text {
+            font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500;
+            line-height: 1.72;
+            color: var(--wf-text);
+            flex: 1;
+            margin-bottom: 12px;
+            margin-right: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-msg { display: flex; flex-direction: column; }
+        .chat-msg.user { align-items: flex-end; }
+        .chat-msg.ai   { align-items: flex-start; }
+        .chat-bubble {
+            max-width: 88%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            line-height: 1.72;
+            white-space: pre-line;
+        }
+        .chat-msg.user .chat-bubble {
+            background: #9281BF;
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-msg.ai .chat-bubble {
+            background: rgba(47,35,115,.08);
+            color: var(--wf-text);
+            border-bottom-left-radius: 4px;
+        }
+        .chat-bubble.is-typing { opacity: .5; font-style: italic; }
+        /* 细滚动条 */
+        #detail-chat-text::-webkit-scrollbar { width: 4px; }
+        #detail-chat-text::-webkit-scrollbar-track { background: transparent; }
+        #detail-chat-text::-webkit-scrollbar-thumb { background: rgba(47,35,115,.2); border-radius: 4px; }
+        .detail-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(47,35,115,.05);
+            border-radius: 16px;
+            padding: 9px 14px;
+            margin-top: auto; /* 把输入行推到底部 */
+        }
+        .detail-input-row input {
+            flex: 1; border: none; background: none;
+            font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            color: var(--card-title); outline: none;
+        }
+        .detail-input-row input::placeholder { color: var(--card-muted); }
+        /* 麦克风按钮 */
+        .detail-mic-btn {
+            background: none; border: none;
+            color: var(--wf-muted); cursor: pointer;
+            padding: 4px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: color .2s;
+        }
+        .detail-mic-btn:hover { color: var(--wf-purple); }
+        .detail-mic-btn.is-recording {
+            color: #e57373;
+            animation: micPulse 1s ease-in-out infinite;
+        }
+        @keyframes micPulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+        /* 发送按钮：黄色胶囊，SVG rx=22 height=44 */
+        .detail-send-btn {
+            background: var(--wf-yellow);
+            border: none;
+            color: var(--wf-purple);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding: 0 20px;
+            height: 44px;
+            border-radius: 22px;
+            flex-shrink: 0;
+        }
+        /* 共鸣按钮 */
+        #btn-resonance-detail {
+            align-self: flex-end;
+            margin-top: 12px;
+            padding: 11px 26px;
+            border: none;
+            border-radius: 999px;
+            background: var(--wf-yellow);
+            color: var(--wf-purple);
+            font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: bold;
+            letter-spacing: .1em;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(255,220,115,.5);
+        }
+
+        /* 响应式详情：窄屏堆叠 */
+        @media (max-width: 680px) {
+            .detail-layout { padding: 12px 16px; }
+            .detail-shell { flex-direction: column; border-radius: 40px; height: auto; max-height: 90vh; overflow-y: auto; overflow-x: hidden; }
+            .detail-left { flex: 0 0 auto; border-radius: 40px 40px 0 0; }
+            .detail-cat-img-area { height: 200px; margin-top: -60px; }
+            .detail-planet-info { padding: 0 20px 24px 24px; }
+            .detail-right { border-radius: 0 0 40px 40px; padding: 16px 20px 24px; }
+            .detail-planet-name { font-size: 34px; }
+        }
+
+        /* ─── 结果场景 ─── */
+        #result-scene { z-index: 45; }
+        .result-layout {
+            position: absolute; inset: 64px 0 0;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px 24px;
+        }
+        /* 外层背景卡片：与详情页同款大小 */
+        .result-shell {
+            width: min(920px, 100%);
+            height: min(600px, 88vh);
+            background: rgba(255, 250, 244, 0.75);
+            border-radius: 80px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0,0,0,.22);
+            border: 1px solid rgba(255,250,244,.55);
+            position: relative;
+        }
+        /* 左：插画，固定 466px，四边 40px */
+        .result-left {
+            flex: 0 0 min(466px, 45%);
+            padding: 40px;
+            display: flex;
+            align-items: stretch;
+        }
+        .result-illu-card {
+            width: 100%;
+            border-radius: 28px;
+            overflow: hidden;
+            border: 2px solid rgba(47,35,115,.15);
+            box-shadow: 0 8px 24px rgba(47,35,115,.12);
+        }
+        .result-illu-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* 右：auto layout gap 24，上下右 40px */
+        .result-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 40px 40px 40px 0;
+            min-width: 0;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        /* 分析文字卡 */
+        .result-analysis-card {
+            background: #FFFAF4;
+            border-radius: 60px;
+            padding: 28px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px; /* 文字与紫色胶囊之间 40px */
+            flex-shrink: 0;
+        }
+        .result-advice-text {
+            font-size: 13px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500;
+            line-height: 1.8;
+            color: var(--wf-text);
+            white-space: pre-line;
+        }
+        .result-boundary-pill {
+            display: inline-block;
+            background: #9281BF;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            padding: 9px 20px;
+            border-radius: 999px;
+            align-self: flex-start;
+        }
+        /* 三列练习卡 */
+        .result-exercises {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            flex: 1; /* 撑满剩余空间 */
+            min-height: 0;
+        }
+        .exercise-item {
+            background: #FFFAF4;
+            border-radius: 40px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100%; /* 填满网格行高 */
+        }
+
+        /* ─── 练习弹窗 ─── */
+        #exercise-modal {
+            display: none;
+            position: fixed; inset: 0; z-index: 6000;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
+        }
+        #exercise-modal.is-open { display: flex; }
+        .exercise-modal-card {
+            background: #FFFAF4;
+            border-radius: 48px;
+            padding: 40px;
+            width: min(520px, 90vw);
+            max-height: 80vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 24px 80px rgba(0,0,0,.25);
+            position: relative;
+        }
+        .exercise-modal-close {
+            position: absolute; top: 20px; right: 20px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(47,35,115,.08); border: none;
+            cursor: pointer; font-size: 18px; color: var(--wf-muted);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .exercise-modal-tag {
+            font-size: 11px; font-weight: 600; color: #9281BF;
+            letter-spacing: .08em;
+        }
+        .exercise-modal-action {
+            font-size: 18px; font-weight: 600;
+            color: rgba(0,0,0,0.8); line-height: 1.5;
+        }
+        .exercise-modal-example {
+            font-size: 14px; font-weight: 500; font-style: italic;
+            color: rgba(0,0,0,0.55); line-height: 1.6;
+            padding: 12px 16px;
+            background: rgba(47,35,115,.05);
+            border-radius: 16px;
+        }
+        .exercise-modal-label {
+            font-size: 13px; font-weight: 600; color: #9281BF;
+        }
+        .exercise-modal-textarea {
+            width: 100%; min-height: 100px;
+            border: none; outline: none; resize: none;
+            background: rgba(47,35,115,.05);
+            border-radius: 20px; padding: 16px;
+            font-size: 14px; font-weight: 500;
+            color: rgba(0,0,0,0.75); line-height: 1.6;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            box-sizing: border-box;
+        }
+        .exercise-modal-textarea::placeholder { color: rgba(0,0,0,0.3); }
+        .exercise-modal-footer {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .exercise-modal-token-hint {
+            font-size: 12px; color: var(--wf-muted);
+        }
+        .exercise-modal-confirm {
+            background: #9281BF; border: none; border-radius: 999px;
+            color: #fff; font-size: 14px; font-weight: 600;
+            padding: 12px 28px; cursor: pointer;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            transition: transform .15s;
+        }
+        .exercise-modal-confirm:active { transform: scale(.97); }
+        /* 完成态卡片 */
+        .exercise-item.is-done {
+            background: rgba(146,129,191,.1);
+            cursor: default;
+        }
+        .exercise-item.is-done .exercise-check-btn {
+            background: #9281BF !important;
+            border-color: #9281BF !important;
+            color: #fff !important;
+        }
+        .exercise-user-record {
+            display: none;
+            position: absolute; top: 60px; left: 16px; right: 16px;
+            font-size: 12px; font-weight: 500;
+            color: rgba(0,0,0,0.5); font-style: italic; line-height: 1.6;
+        }
+        .exercise-item.is-done .exercise-content { display: none; }
+        .exercise-item.is-done .exercise-user-record { display: block; }
+        /* 右上角完成按钮 24×24 */
+        .exercise-check-btn {
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(47,35,115,.15);
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            color: transparent;
+            transition: background .2s, border-color .2s, box-shadow .2s, color .2s;
+        }
+        .exercise-check-btn.checked {
+            background: var(--wf-yellow);
+            border-color: var(--wf-yellow);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(255, 220, 115, 0.55), 0 1px 4px rgba(0,0,0,.10);
+        }
+        /* 标题：左对齐，但整体在卡片横向居中（即 text-align left，自然左对齐） */
+        .exercise-title {
+            font-size: 11px; font-weight: 600; color: #9281BF;
+            letter-spacing: .06em;
+            text-align: left;
+            align-self: center; /* 横向居中定位 */
+            width: 100%;
+            padding: 0 4px;
+        }
+        /* 内容区推到下方 */
+        .exercise-content {
+            position: absolute;
+            top: 60px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-start;
+            text-align: left;
+        }
+        .exercise-action { font-size: 13px; font-weight: 500; color: rgba(0,0,0,0.75); line-height: 1.6; text-align: left; }
+        .exercise-example { font-size: 13px; font-weight: 400; color: rgba(0,0,0,0.75); font-style: italic; line-height: 1.5; text-align: left; border: none; padding: 0; }
+        .exercise-reflection { font-size: 13px; font-weight: 400; color: rgba(0,0,0,0.75); font-style: italic; line-height: 1.5; text-align: left; }
+        /* 底部区域：按钮左对齐，链上信息右对齐，同行 */
+        .result-bottom { margin-top: auto; }
+
+        /* Token/NFT 信息：绝对定位在背景底部居中 20px，横向并排 */
+        .result-chain-overlay {
+            position: absolute;
+            bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 16px; align-items: center;
+            pointer-events: none;
+        }
+        .result-chain-row { font-size: 11px; color: var(--wf-muted); line-height: 1.6; white-space: nowrap; }
+        .result-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .wf-btn-secondary {
+            padding: 12px 24px; border-radius: var(--wf-radius-btn);
+            border: 1px solid var(--wf-purple); background: transparent;
+            color: var(--wf-purple); font-size: 14px;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-weight: 500; cursor: pointer;
+        }
+        /* 响应式 */
+        @media (max-width: 700px) {
+            .result-shell { flex-direction: column; height: auto; max-height: 90vh; border-radius: 40px; }
+            .result-left { flex: 0 0 auto; padding: 24px 24px 0; }
+            .result-illu-card { aspect-ratio: 3/2; }
+            .result-right { padding: 16px 20px 24px; }
+            .result-exercises { grid-template-columns: 1fr; }
+        }
+
+/* ─── 印记生成场景（点共鸣后的大卡片） ─── */
+        /* ─── 星球印记场景 ─── */
+        #stamp-scene { z-index: 46; }
+        .stamp-page-layout {
+            position: absolute; inset: 64px 0 0;
+            display: flex; align-items: center; justify-content: center;
+            padding: 32px 48px;
+        }
+        .stamp-grid-wrap {
+            width: 100%; max-width: 900px;
+            padding: 36px 44px 40px;
+        }
+        .stamp-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px 32px;
+        }
+        .stamp-planet-item {
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            cursor: pointer;
+        }
+        .stamp-planet-img {
+            width: 100%; max-width: 150px; aspect-ratio: 1;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 24px rgba(0,0,0,.45));
+            transition: transform .2s;
+        }
+        .stamp-planet-item:hover .stamp-planet-img { transform: translateY(-4px) scale(1.04); }
+        .stamp-planet-label {
+            font-size: 12px; font-weight: 500;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            color: rgba(255,250,244,.65); text-align: center; line-height: 1.55;
+        }
+        .stamp-planet-count {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-size: 26px; font-weight: 700; color: #fff; line-height: 1;
+        }
+        .stamp-planet-count span { font-size: 13px; font-weight: 400; margin-left: 2px; color: rgba(255,250,244,.75); }
+
+        /* NFT 记录子页 */
+        .stamp-nft-page {
+            position: absolute; inset: 64px 0 0;
+            display: flex; flex-direction: column;
+            padding: 28px 48px 32px;
+            overflow: hidden;
+        }
+        .stamp-nft-header {
+            display: flex; align-items: center; gap: 16px;
+            margin-bottom: 28px; flex-shrink: 0;
+        }
+        .stamp-nft-back {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: none; background: rgba(255,250,244,.15);
+            color: #fff; font-size: 18px; cursor: pointer;
+            font-family: 'PingFang SC', sans-serif;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .2s;
+        }
+        .stamp-nft-back:hover { background: rgba(255,250,244,.28); }
+        .stamp-nft-title {
+            font-size: 22px; font-weight: 700;
+            font-family: 'PingFang SC', sans-serif;
+            color: #fff; letter-spacing: .06em;
+        }
+        .stamp-nft-grid {
+            display: flex; gap: 20px;
+            overflow-x: auto; overflow-y: hidden;
+            padding-bottom: 12px; flex: 1;
+            align-items: flex-start;
+        }
+        .stamp-nft-grid::-webkit-scrollbar { height: 4px; }
+        .stamp-nft-grid::-webkit-scrollbar-track { background: transparent; }
+        .stamp-nft-grid::-webkit-scrollbar-thumb { background: rgba(255,250,244,.25); border-radius: 4px; }
+        .stamp-nft-card {
+            flex-shrink: 0;
+            width: calc((100vh - 64px - 28px - 36px - 28px - 12px - 32px) * 0.55);
+            max-width: 200px; min-width: 120px;
+            aspect-ratio: 3 / 4;
+            border-radius: 20px; overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0,0,0,.45);
+            transition: transform .2s, box-shadow .2s;
+            background: rgba(30,20,70,.5);
+        }
+        .stamp-nft-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 16px 48px rgba(0,0,0,.55); }
+        .stamp-nft-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .stamp-nft-card-label {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 28px 12px 12px;
+            background: linear-gradient(transparent, rgba(0,0,0,.65));
+            display: flex; flex-direction: column; gap: 2px;
+        }
+        .stamp-nft-card-planet { font-size: 11px; color: rgba(255,250,244,.7); font-family: 'PingFang SC', sans-serif; }
+        .stamp-nft-card-name   { font-size: 13px; font-weight: 700; color: rgba(255,250,244,.95); font-family: 'PingFang SC', sans-serif; letter-spacing: .04em; }
+        .stamp-nft-card-time   { font-size: 10px; color: rgba(255,250,244,.5); font-family: 'PingFang SC', sans-serif; }
+        /* 印章戳 —— 位于灯箱放大图上 */
+        .stamp-lightbox-img-wrap {
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .stamp-nft-seal {
+            position: absolute; bottom: 14%; right: 8%;
+            transform: rotate(-18deg);
+            width: 96px; height: 96px; border-radius: 50%;
+            border: 3px solid rgba(210,45,45,.75);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 3px;
+            color: rgba(210,45,45,.75);
+            font-family: 'PingFang SC', sans-serif;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+        }
+        .stamp-nft-seal::before {
+            content: '';
+            position: absolute; inset: 5px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(210,45,45,.45);
+        }
+        .stamp-nft-seal-planet { font-size: 9px;  font-weight: 700; letter-spacing: .1em; }
+        .stamp-nft-seal-date   { font-size: 11px; font-weight: 700; letter-spacing: .03em; line-height: 1.4; text-align: center; }
+        .stamp-nft-seal-time   { font-size: 10px; font-weight: 500; letter-spacing: .05em; }
+        .stamp-nft-empty {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 12px;
+            color: rgba(255,250,244,.45);
+            font-size: 14px; font-family: 'PingFang SC', sans-serif;
+        }
+        /* 灯箱 */
+        .stamp-lightbox {
+            position: fixed; inset: 0; z-index: 9000;
+            background: rgba(0,0,0,.82);
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+            cursor: zoom-out;
+        }
+        .stamp-lightbox img {
+            max-width: 90vw; max-height: 90vh;
+            aspect-ratio: 3/4; object-fit: cover;
+            border-radius: 24px;
+            box-shadow: 0 32px 80px rgba(0,0,0,.7);
+        }
+        .stamp-lightbox-close {
+            position: absolute; top: 20px; right: 24px;
+            width: 40px; height: 40px; border-radius: 50%;
+            border: none; background: rgba(255,255,255,.15);
+            color: #fff; font-size: 20px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        @media (max-width: 700px) {
+            .stamp-grid-wrap { padding: 20px 16px 24px; }
+            .stamp-grid { grid-template-columns: repeat(4, 1fr); gap: 20px 10px; }
+            .stamp-planet-count { font-size: 20px; }
+            .stamp-nft-page { padding: 16px 20px 20px; }
+        }
+
+        /* ─── 旅程场景：散点星球─── */
+        /* ─── 我的旅程：横向时间线 ─── */
+        #journey-scene { z-index: 45; overflow: hidden; }
+        .journey-canvas {
+            position: absolute;
+            inset: var(--nav-h) 0 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            cursor: grab;
+            -webkit-overflow-scrolling: touch;
+        }
+        .journey-canvas:active { cursor: grabbing; }
+        /* 内容宽度由 JS 动态设置 */
+        #journey-inner {
+            position: relative;
+            height: 100%;
+            min-width: 100%;
+        }
+        #journey-svg {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        /* 虚线曲线：用 path 替代 line */
+        .journey-dashed-curve {
+            stroke: rgba(255,250,244,.45);
+            stroke-width: 2;
+            stroke-dasharray: 8 10;
+            fill: none;
+        }
+        /* 星球节点：绝对定位 */
+        .journey-planet-node {
+            position: absolute;
+            display: flex; flex-direction: column; align-items: center;
+            cursor: default;
+            transform: translate(-50%, -50%);
+        }
+        .journey-planet-img {
+            border-radius: 50%; object-fit: cover;
+            box-shadow: 0 8px 28px rgba(0,0,0,.35);
+            display: block;
+            border: 2px solid rgba(255,250,244,.3);
+        }
+        /* 浮动信息卡（节点旁） */
+        .journey-card {
+            background: rgba(255,250,244,.88);
+            border-radius: 18px;
+            padding: 10px 14px;
+            text-align: center;
+            margin-top: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,.16);
+            min-width: 120px; max-width: 160px;
+            backdrop-filter: blur(6px);
+        }
+        .journey-card-planet { font-size: 10px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-weight: 500; color: var(--wf-muted); letter-spacing: .08em; }
+        .journey-card-summary { font-size: 13px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-weight: 500; color: var(--wf-purple); margin: 3px 0; line-height: 1.35; }
+        .journey-card-date { font-size: 10px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-weight: 500; color: var(--wf-muted); }
+        /* 空状态 */
+        .journey-empty { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; color: rgba(255,250,244,.75); }
+        .journey-empty p { font-size: 15px; line-height: 1.7; letter-spacing: .06em; }
+        #btn-journey-back-float {
+            position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+            padding: 12px 32px; border-radius: 999px;
+            border: 1px solid rgba(255,250,244,.5);
+            background: rgba(255,250,244,.12);
+            color: var(--wf-cream); font-size: 14px; font-weight: 600;
+            cursor: pointer; font-family: inherit; letter-spacing: .08em;
+            backdrop-filter: blur(8px); z-index: 100;
+        }
+
+        /* ─── 探索燃料场景 ─── */
+        #fuel-scene { z-index: 45; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .fuel-inner {
+            max-width: 560px; margin: 0 auto;
+            padding: calc(64px + 28px) 20px 40px;
+        }
+        .fuel-balance-card {
+            background: var(--wf-cream); border-radius: 36px;
+            padding: 28px; text-align: center; margin-bottom: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.15);
+        }
+        .fuel-balance-label { font-size: 12px; letter-spacing: .2em; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-weight: 500; color: var(--wf-muted); margin-bottom: 8px; }
+        .fuel-balance-amount { font-size: 48px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-weight: bold; color: var(--wf-purple); line-height: 1; }
+        .fuel-balance-unit { font-size: 14px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-weight: 500; color: var(--wf-muted); margin-top: 4px; }
+        .fuel-log-title { font-size: 14px; letter-spacing: .12em; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; font-weight: 500; color: var(--wf-cream); margin-bottom: 12px; }
+        .fuel-log-item {
+            background: var(--wf-cream-soft); border-radius: 18px;
+            padding: 14px 18px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
+        }
+        .fuel-log-desc { font-size: 13px; color: var(--wf-text); }
+        .fuel-log-time { font-size: 11px; color: var(--wf-muted); margin-top: 3px; }
+        .fuel-log-amount { font-size: 15px; font-weight: 700; }
+        .fuel-log-amount.in  { color: #4caf50; }
+        .fuel-log-amount.out { color: #e57373; }
+
+        /* ─── Token 奖励弹窗 ─── */
+        .token-toast {
+            position: fixed; left: 50%; top: 50%;
+            transform: translate(-50%, -50%) scale(.82);
+            z-index: 8000;
+            background: var(--wf-cream);
+            border-radius: 36px;
+            padding: 40px 48px 36px;
+            text-align: center;
+            box-shadow: 0 24px 80px rgba(47,35,115,.28), 0 0 0 1.5px rgba(47,35,115,.08);
+            min-width: 260px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+        }
+        .token-toast.is-visible {
+            opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto;
+        }
+        .token-toast-icon {
+            font-size: 48px; line-height: 1; margin-bottom: 12px;
+        }
+        .token-toast-title {
+            font-size: 13px; letter-spacing: .2em; font-weight: 600;
+            font-family: 'PingFang SC', sans-serif;
+            color: var(--wf-muted); margin-bottom: 8px;
+        }
+        .token-toast-amount {
+            font-size: 56px; font-weight: 800; line-height: 1;
+            font-family: 'PingFang SC', sans-serif;
+            color: var(--wf-purple);
+        }
+        .token-toast-unit {
+            font-size: 14px; font-weight: 500; margin-top: 2px;
+            font-family: 'PingFang SC', sans-serif;
+            color: var(--wf-muted);
+        }
+        .token-toast-desc {
+            font-size: 13px; margin-top: 16px;
+            font-family: 'PingFang SC', sans-serif;
+            color: var(--wf-text); line-height: 1.6;
+        }
+        .token-toast-total {
+            margin-top: 20px; padding-top: 16px;
+            border-top: 1px solid rgba(47,35,115,.08);
+            font-size: 12px; color: var(--wf-muted);
+            font-family: 'PingFang SC', sans-serif; letter-spacing: .05em;
+        }
+        .token-toast-total span {
+            font-weight: 700; color: var(--wf-purple);
+        }
+        .token-toast-btn {
+            margin-top: 22px;
+            padding: 12px 36px; border-radius: 100px;
+            border: none; cursor: pointer;
+            background: var(--wf-yellow); color: var(--wf-purple);
+            font-size: 14px; font-weight: 700; letter-spacing: .06em;
+            font-family: 'PingFang SC', sans-serif;
+            box-shadow: 0 4px 16px rgba(255,220,115,.45);
+            transition: transform .15s, box-shadow .15s;
+        }
+        .token-toast-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,220,115,.55); }
+        .token-toast-overlay {
+            position: fixed; inset: 0; z-index: 7999;
+            background: rgba(20,14,50,.45);
+            backdrop-filter: blur(6px);
+            opacity: 0; pointer-events: none;
+            transition: opacity .3s ease;
+        }
+        .token-toast-overlay.is-visible { opacity: 1; pointer-events: auto; }
+
+        /* ─── 印记命名弹窗 ─── */
+        #stamp-name-modal {
+            position: fixed; inset: 0; z-index: 8500;
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+            background: rgba(20,14,50,.5);
+            backdrop-filter: blur(8px);
+            opacity: 0; pointer-events: none;
+            transition: opacity .3s ease;
+        }
+        #stamp-name-modal.is-open {
+            opacity: 1; pointer-events: auto;
+        }
+        .stamp-name-card {
+            background: var(--wf-cream);
+            border-radius: 36px;
+            padding: 40px 40px 36px;
+            width: 100%; max-width: 420px;
+            display: flex; flex-direction: column; gap: 12px;
+            box-shadow: 0 24px 80px rgba(47,35,115,.28);
+            transform: translateY(12px) scale(.96);
+            transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+        }
+        #stamp-name-modal.is-open .stamp-name-card {
+            transform: translateY(0) scale(1);
+        }
+        .stamp-name-title {
+            font-size: 20px; font-weight: 700;
+            font-family: 'PingFang SC', sans-serif;
+            color: var(--wf-purple); letter-spacing: .04em;
+        }
+        .stamp-name-sub {
+            font-size: 13px; line-height: 1.7;
+            font-family: 'PingFang SC', sans-serif;
+            color: var(--wf-muted);
+        }
+        .stamp-name-input {
+            width: 100%; box-sizing: border-box;
+            margin-top: 4px;
+            padding: 14px 18px;
+            border-radius: 18px;
+            border: 1.5px solid rgba(47,35,115,.15);
+            background: rgba(47,35,115,.04);
+            font-size: 15px; font-family: 'PingFang SC', sans-serif;
+            color: var(--wf-text); outline: none;
+            transition: border-color .2s;
+        }
+        .stamp-name-input:focus { border-color: rgba(47,35,115,.4); }
+        .stamp-name-input::placeholder { color: var(--wf-muted); }
+        .stamp-name-actions {
+            display: flex; gap: 10px; margin-top: 8px;
+        }
+        .stamp-name-skip {
+            padding: 12px 20px; border-radius: 100px;
+            border: 1px solid rgba(47,35,115,.2); background: transparent;
+            color: var(--wf-muted); font-size: 14px; cursor: pointer;
+            font-family: 'PingFang SC', sans-serif;
+            transition: border-color .2s, color .2s;
+        }
+        .stamp-name-skip:hover { border-color: var(--wf-purple); color: var(--wf-purple); }
+        .stamp-name-confirm {
+            flex: 1; padding: 12px 20px; border-radius: 100px;
+            border: none; background: var(--wf-yellow);
+            color: var(--wf-purple); font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: 'PingFang SC', sans-serif;
+            box-shadow: 0 4px 16px rgba(255,220,115,.45);
+            letter-spacing: .04em;
+            transition: transform .15s, box-shadow .15s;
+        }
+        .stamp-name-confirm:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,220,115,.55); }
+
+        /* ─── 过渡遮罩 ─── */
+        #transition-overlay {
+            position: fixed; inset: 0; z-index: 5000;
+            pointer-events: none; opacity: 0;
+            background: radial-gradient(circle at 50% 45%, rgba(255,220,115,.55) 0%, rgba(47,35,115,.85) 55%, #1a1030 100%);
+            transition: opacity .6s ease;
+        }
+        #transition-overlay.is-on { pointer-events: auto; opacity: 1; }
+        .transition-veil {
+            position: absolute; inset: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='2' cy='2' r='1' fill='white' opacity='0.08'/%3E%3C/svg%3E");
+            animation: driftStars 2s linear infinite;
+        }
+        @keyframes driftStars { from { transform: translateY(0); } to { transform: translateY(-80px); } }
+        .transition-label {
+            position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
+            font-size: clamp(18px,4vw,26px); font-weight: 700; letter-spacing: .35em;
+            color: var(--wf-cream); text-shadow: 0 0 40px rgba(255,220,115,.6); white-space: nowrap;
+        }
+
+        .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5,end) infinite; }
+        @keyframes dots {
+            0%,20% { color: rgba(74,74,74,0); text-shadow: .25em 0 0 rgba(74,74,74,0),.5em 0 0 rgba(74,74,74,0); }
+            40% { color: var(--card-body); text-shadow: .25em 0 0 rgba(74,74,74,0),.5em 0 0 rgba(74,74,74,0); }
+            60% { text-shadow: .25em 0 0 var(--card-body),.5em 0 0 rgba(74,74,74,0); }
+            80%,100% { text-shadow: .25em 0 0 var(--card-body),.5em 0 0 var(--card-body); }
+        }
+
+        @media (max-width: 520px) {
+            .carousel { height: clamp(180px,30vh,260px); }
+            .planet-wrap { --p-size: clamp(100px, 22vw, 156px); }
+            #planet-title { font-size: clamp(28px,7vw,38px); }
+            #btn-planet-detail { padding: 16px 28px; font-size: 16px; }
+            .detail-layout, .result-layout, .stamp-layout { padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="background">
+    <div class="stars"></div>
+    <div class="halo"></div>
+    <div class="watercolor-cloud" style="width:250px;height:60px;top:15%;animation-duration:45s;"></div>
+    <div class="watercolor-cloud" style="width:350px;height:80px;top:45%;animation-duration:65s;"></div>
+</div>
+
+<!-- ── 顶部导航（主场景共用）── -->
+<nav id="top-nav">
+    <span class="nav-logo" onclick="navTo('carousel-scene')" style="cursor:pointer;">Makkie的星域</span>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="菜单" onclick="toggleNavMenu()">
+        <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="nav-links">
+        <button class="nav-link active" id="nav-planet"   onclick="navTo('carousel-scene')">星域探索</button>
+        <button class="nav-link"        id="nav-fuel"     onclick="navTo('fuel-scene')">探索燃料</button>
+        <button class="nav-link"        id="nav-stamp"    onclick="closeNavMenu();renderStampScene()">星球印记</button>
+        <button class="nav-link"        id="nav-journey"  onclick="navToJourney()">我的旅程</button>
+    </div>
+</nav>
+
+<!-- ── 连接钱包 ── -->
+<div id="connect-scene" class="scene">
+    <div class="wf-hero-panel">
+        <div class="wf-hero-copy">
+            <div class="wf-hero-title">情绪星域</div>
+            <p class="wf-hero-sub">连接钱包，进入属于你的星域旅程。每一次共鸣都会在链上留下不可篡改的印记——这是你与星球之间的秘密契约。</p>
+        </div>
+        <div class="wf-connect-card">
+            <p style="font-size:14px;line-height:1.65;color:var(--wf-text);">首次进入请先连接 MetaMask，以便记录旅程与后续铸造星球印记。</p>
+            <button type="button" class="wf-btn-primary" id="btn-metamask">连接 MetaMask</button>
+            <button type="button" class="wf-btn-ghost"   id="btn-demo-mode">演示模式（跳过钱包）</button>
+            <p class="wf-wallet-hint">演示模式仅保存在本机浏览器，不进行真实链上交易。</p>
+        </div>
+    </div>
+</div>
+
+<!-- ── 星球轮播主场景── -->
+<div id="carousel-scene" class="scene">
+    <div class="carousel" id="carousel"></div>
+    <div id="planet-name-center">
+        <div id="planet-title">星球名称</div>
+        <span id="planet-subtitle">— 探索中 —</span>
+    </div>
+    <button type="button" id="btn-planet-detail">进入星球</button>
+</div>
+
+<!-- ── 星球详情场景 ── -->
+<div id="detail-scene" class="scene">
+    <div class="detail-layout">
+        <div class="detail-shell">
+            <!-- 左侧：星球插图+ 信息 -->
+            <div class="detail-left">
+                <div class="detail-cat-img-area">
+                    <img id="detail-cat-img" alt="" />
+                </div>
+                <div class="detail-planet-info">
+                    <div class="detail-planet-name" id="detail-planet-name">星球</div>
+                    <div class="detail-card-subtitle" id="detail-card-subtitle"></div>
+                    <div class="detail-card-divider"></div>
+                    <div class="detail-planet-desc" id="detail-planet-desc"></div>
+                    <div class="detail-mechanism" id="detail-mechanism"></div>
+                </div>
+            </div>
+            <!-- 右侧：对话示例+ 对话框-->
+            <div class="detail-right">
+                <div class="detail-box">
+                    <div class="detail-sample-wrap" id="detail-sample-wrap">
+                        <div class="sample-desc" id="sample-desc"></div>
+                        <div class="sample-dialog-lines" id="sample-dialog-lines"></div>
+                        <div class="sample-dialog-more">···</div>
+                        <div class="sample-state" id="sample-state"></div>
+                    </div>
+                </div>
+                <div class="detail-box">
+                    <div id="detail-input-wrap">
+                        <button id="btn-chat-back" onclick="collapseChatArea()" title="返回示例对话">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(47,35,115,0.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <div id="detail-hints"></div>
+                        <div id="detail-chat-text" style="display:none;"></div>
+                        <div class="detail-input-row">
+                            <input type="text" id="detail-user-input" placeholder="试着描述你自己的感受…" autocomplete="off">
+                            <button class="detail-mic-btn" id="btn-detail-mic" title="语音输入">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="2" width="6" height="11" rx="3"/>
+                                    <path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/>
+                                    <line x1="9" y1="22" x2="15" y2="22"/>
+                                </svg>
+                            </button>
+                            <button class="detail-send-btn" id="btn-detail-send">发送</button>
+                        </div>
+                        <button type="button" id="btn-resonance-detail">共鸣 ···</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── 结果场景 ── -->
+<div id="result-scene" class="scene">
+    <div class="result-layout">
+        <div class="result-shell">
+            <!-- 左：插画 -->
+            <div class="result-left">
+                <div class="result-illu-card">
+                    <img id="result-illu" alt="" />
+                </div>
+            </div>
+            <!-- 右：分析卡 + 练习卡 + 按钮 -->
+            <div class="result-right">
+                <!-- 分析文字卡 -->
+                <div class="result-analysis-card">
+                    <div class="result-advice-text" id="result-analysis"></div>
+                    <div class="result-boundary-pill" id="result-boundary"></div>
+                </div>
+                <!-- 三列练习卡 -->
+                <div class="result-exercises" id="result-exercises"></div>
+                <div class="result-bottom">
+                    <div class="result-actions">
+                        <button type="button" class="wf-btn-primary" id="btn-mint-mock" style="width:auto;margin-top:0;padding:13px 28px;">生成印记</button>
+                        <button type="button" class="wf-btn-secondary" id="btn-result-home">返回星域</button>
+                        <button type="button" class="wf-btn-secondary" id="btn-result-journey">我的旅程</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Token/NFT 信息：绝对定位在背景底部居中 -->
+            <div class="result-chain-overlay">
+                <div class="result-chain-row" id="result-token-line"></div>
+                <div class="result-chain-row" id="result-nft-line"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── 印记展示场景 ── -->
+<div id="stamp-scene" class="scene">
+    <!-- 总览：8星球网格 -->
+    <div class="stamp-page-layout" id="stamp-overview">
+        <div class="stamp-grid-wrap">
+            <div class="stamp-grid" id="stamp-planet-grid"></div>
+        </div>
+    </div>
+    <!-- 单星球 NFT 记录 -->
+    <div class="stamp-nft-page" id="stamp-nft-page" style="display:none;">
+        <div class="stamp-nft-header">
+            <button class="stamp-nft-back" id="btn-stamp-nft-back">&#8249;</button>
+            <div class="stamp-nft-title" id="stamp-nft-title">迷雾星球</div>
+        </div>
+        <div class="stamp-nft-grid" id="stamp-nft-grid"></div>
+    </div>
+</div>
+
+<!-- ── 旅程场景：散点星球── -->
+<div id="journey-scene" class="scene">
+    <div class="journey-canvas" id="journey-canvas">
+        <div id="journey-inner">
+            <svg id="journey-svg"></svg>
+            <div id="journey-nodes"></div>
+        </div>
+        <div id="journey-empty" class="journey-empty" style="display:none;">
+            <p>暂无共鸣记录<br>完成一次共鸣后<br>将在此留下印迹</p>
+        </div>
+    </div>
+    <button type="button" id="btn-journey-back-float">返回星域</button>
+</div>
+
+<!-- ── 探索燃料场景 ── -->
+<div id="fuel-scene" class="scene">
+    <div class="fuel-inner">
+        <div class="fuel-balance-card">
+            <div class="fuel-balance-label">当前余额</div>
+            <div class="fuel-balance-amount" id="fuel-amount">0</div>
+            <div class="fuel-balance-unit">MOOD Token</div>
+        </div>
+        <div class="fuel-log-title">收支记录</div>
+        <div id="fuel-log-list">
+            <div class="fuel-log-item">
+                <div><div class="fuel-log-desc">首次连接钱包奖励</div><div class="fuel-log-time">—</div></div>
+                <div class="fuel-log-amount in">+10</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- ── 印记命名弹窗 ── -->
+<div id="stamp-name-modal">
+    <div class="stamp-name-card">
+        <div class="stamp-name-title">给这次印记起个名字</div>
+        <div class="stamp-name-sub">可以是这段关系对应的人、或者你自己定义的标签。<br>印记会带着这个名字保存在你的旅程里。</div>
+        <input class="stamp-name-input" id="stamp-name-input" type="text" placeholder="例：小A、前任、2025的自己……" maxlength="20">
+        <div class="stamp-name-actions">
+            <button class="stamp-name-skip" id="stamp-name-skip">跳过</button>
+            <button class="stamp-name-confirm" id="stamp-name-confirm">铸造印记 ✦</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── 练习弹窗 ── -->
+<div id="exercise-modal" aria-modal="true">
+    <div class="exercise-modal-card">
+        <button class="exercise-modal-close" id="exercise-modal-close">×</button>
+        <div class="exercise-modal-tag" id="modal-tag"></div>
+        <div class="exercise-modal-action" id="modal-action"></div>
+        <div class="exercise-modal-example" id="modal-example" style="display:none;"></div>
+        <div class="exercise-modal-label">写下你实际做了什么：</div>
+        <textarea class="exercise-modal-textarea" id="modal-textarea" placeholder="描述你的行动，哪怕很小……"></textarea>
+        <div class="exercise-modal-min-hint" id="modal-min-hint" style="display:none;font-size:12px;color:#e57373;">至少写 15 个字才能完成记录</div>
+        <div class="exercise-modal-footer">
+            <span class="exercise-modal-token-hint">完成后获得 +1 MOOD</span>
+            <button class="exercise-modal-confirm" id="modal-confirm">记录完成 ✓</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── 过渡遮罩 ── -->
+<div id="transition-overlay" aria-hidden="true">
+    <div class="transition-veil"></div>
+    <div class="transition-label">共鸣生成中</div>
+</div>
+
+<!-- Token 奖励弹窗 -->
+<div class="token-toast-overlay" id="token-toast-overlay" onclick="hideTokenToast()"></div>
+<div class="token-toast" id="token-toast" role="dialog" aria-modal="true">
+    <div class="token-toast-icon">🪙</div>
+    <div class="token-toast-title">T O K E N &nbsp; 获 得</div>
+    <div class="token-toast-amount" id="token-toast-amount">+10</div>
+    <div class="token-toast-unit">探索燃料</div>
+    <div class="token-toast-desc" id="token-toast-desc">连接钱包奖励</div>
+    <div class="token-toast-total">当前余额 &nbsp;<span id="token-toast-total-val">10</span>&nbsp; Token</div>
+    <button class="token-toast-btn" onclick="hideTokenToast()">收下了</button>
+</div>
+
+<script>
+    const planetsData = [
+        { name:'迷雾星球', subtitle:'迷雾星球（认知混淆）', img:'MistyPlanet.webp', catImg:'MistyPlanet_cat.webp', npc:'夏露', sprite:'🐍', intro:'嘘... 仔细听。那是迷路者的呼唤，还是你自己内心的回声？', personality:'神秘安静，语气空灵，谈论记忆和孤独。', sampleVoice:'「雾里没有方向，只有回声。你刚才叫的名字……我也曾听过。」声音贴着你耳廓，却看不见唇形。', dialogDesc:'他在不同人之间讲述不同版本的故事，制造裂痕，让你的判断逐渐失去依据。', dialogLines:['"我没有这么说吧？你是不是记错了？"','"你最近是不是压力太大了，有点敏感。"','"大家都不是这么理解的，可能是你想多了。"'], state:'开始怀疑自己感知是否真实', hints:['对方和你对同一件事的描述，是否经常不一致？', '当出现分歧时，通常是谁先改变说法？', '你会不会在事后反复回想对话细节？', '你们是否经常需要"确认到底发生了什么"？'], exercises:[{"title": "小练习 1", "action": "写下刚刚的对话", "example": "", "reflection": ""}, {"title": "小练习 2", "action": "下一次对话时，重复确认一句关键事实", "example": "\"我记得当时是这样发生的，对吗？\"", "reflection": ""}, {"title": "小练习 3", "action": "问自己", "example": "", "reflection": "\"我是在确认事实，还是在说服自己？\""}], currentAdvice:'你现在最需要做的，不是分辨谁对谁错，而是先稳住你自己的判断。\n当一段对话不断被否认或改写，你会下意识开始怀疑自己，这是很自然的反应。\n你可以先把注意力从"证明"转回来，放在"我当时是怎么感受到的"。', boundaryStatement:'你的感知，本身就值得被保留。', desc:'明明发生过的事，他说从来没有。他用极度的笃定感重写你的记忆，让你开始怀疑自己的感知。这是煤气灯效应的本质——不用暴力，只用「你的判断本身就是错的」来瓦解你。', mechanism:'机制本质：现实扭曲 / 信息混乱' },
+        { name:'泪海星球', subtitle:'泪海星球（情绪吞噬）', img:'TearsOfPlanet.webp', catImg:'TearsOfPlanet_cat.webp', npc:'巴克', sprite:'🐲', intro:'传说每一滴眼泪都是一颗星星的碎片。在这个被淹没的世界里，你还在寻找什么？', personality:'热衷桌游的死宅，中二且感性。', sampleVoice:'「这局游戏规则很简单：谁先把眼泪藏起来，谁就输。——你藏好了吗？」', dialogDesc:'他不断倾诉自己的痛苦，却从不真正改变，让你的共情变成长期消耗。', dialogLines:['"其实我已经习惯了，反正事情总是这样。"','"我也不是没试过改变，但可能我就是这样的人吧。"','"你不用安慰我了，我不值得别人花这么多心思。"'], state:'越安慰越无力，却停不下来', hints:['对方提到同一类困扰的频率如何？', '这些问题在时间上有没有明显变化？', '你在对话中，大概花多少时间在回应情绪？', '你们的聊天中，谁说话的时间更多？'], exercises:[{"title": "小练习 1", "action": "只回应情绪，不给建议", "example": "", "reflection": ""}, {"title": "小练习 2", "action": "设一个\"结束点\"", "example": "\"我先陪你到这里，晚一点我们再聊。\"", "reflection": ""}, {"title": "小练习 3", "action": "觉察", "example": "", "reflection": "\"这段情绪是在流动，还是在重复？\""}], currentAdvice:'你现在已经在不断回应这段情绪了，但它没有真正离开，只是在重复出现。\n这不是你不够努力，而是这段情绪并没有被处理。\n你可以开始慢慢减少"接住它"的次数，不需要立刻改变关系，只是先减少一点点参与。', boundaryStatement:'你不需要成为情绪的出口。', desc:'他永远是受害者，你永远是救援者。每次你想离开，新的危机就会出现。你的共情是他的燃料，而他从不真正改变——因为改变意味着失去受害者这块护盾。', mechanism:'机制本质：受害者循环 / 情绪黑洞' },
+        { name:'债务星球', subtitle:'债务星球（责任转移）', img:'DebtPlanet.webp', catImg:'DebtPlanet_cat.webp', npc:'乔瓦尼', sprite:'🐦', intro:'过去就像沉重的硬币，压在口袋里叮当响。你想聊聊你的"账单"吗？', personality:'充满魅力但负疚的享乐主义者，语气浪漫沧桑。', sampleVoice:'「每一笔债都会在夜里长出利息——亲爱的，你连利息都算不清，怎么敢和我谈条件？」他轻笑，酒杯沿上留着唇印。', dialogDesc:'他把自己的问题归因于你，让你逐渐承担不属于你的责任。', dialogLines:['"我今天会这么崩，是因为你昨天那句话。"','"如果你早点理解我，我不会这么难受。"','"你有没有想过是你让我变成这样的？"'], state:'开始习惯性道歉', hints:['对方在表达情绪时，会提到你的行为吗？', '你是否经常需要解释自己的本意？', '在冲突中，话题通常会如何结束？', '你有没有为某些对话结果做过道歉？'], exercises:[{"title": "小练习 1", "action": "先不解释", "example": "", "reflection": ""}, {"title": "小练习 2", "action": "说一句边界句", "example": "\"我理解你的感受，但这件事不完全是我的部分。\"", "reflection": ""}, {"title": "小练习 3", "action": "觉察", "example": "", "reflection": "\"我是在回应，还是在承担？\""}], currentAdvice:'你已经习惯在对话中往前走一步，去解释、去承担。\n但现在更重要的，是停下来区分：哪些是你的，哪些不是。\n不需要立刻反驳，也不需要争对错，只是先在心里把这条线画出来。', boundaryStatement:'不是所有指向你的情绪，都需要你接住。', desc:'他让「拒绝」变成一种罪。无论他提出什么要求，拒绝都会被包装成对他的伤害。他翻出过去的每一件好事，让你活在亏欠感中。你不是在自愿给予，而是在偿还一笔永远还不清的情感债务。', mechanism:'机制本质：罪责转移 / 情绪操控' },
+        { name:'面具星球', subtitle:'面具星球（伪装亲密）', img:'MaskPlanet.webp', catImg:'MaskPlanet_cat.webp', npc:'斯坦利', sprite:'🍄', intro:'每个人都带着面具，我的这幅看起来怎么样？你呢，你的面具下藏着什么？', personality:'天真好奇的小男孩，通过画画理解世界。', sampleVoice:'「你看，我把眼睛画在面具外面了——这样就算哭，也像在笑。」', dialogDesc:'他用理解与共鸣接近你，让你放下防备，再慢慢建立依赖。', dialogLines:['"我很少跟别人聊这些，但跟你说很安心。"','"你真的很懂我，这种感觉很少见。"','"其实我不太相信人，但你让我有点例外。"'], state:'以为遇到共鸣，其实进入绑定', hints:['你们关系变近的速度是快还是慢？', '对方是否会主动分享较深层的情绪或经历？', '你们的对话中，是否很早就涉及私人话题？', '对方是否会评价"你和别人不一样"？'], exercises:[{"title": "小练习 1", "action": "留一部分不说", "example": "", "reflection": ""}, {"title": "小练习 2", "action": "延迟分享", "example": "把想说的话，过一天再说", "reflection": ""}, {"title": "小练习 3", "action": "觉察", "example": "", "reflection": "\"我是因为信任在分享，还是因为被理解而放松了警惕？\""}], currentAdvice:'你感受到的连接是真实的，但它来得很快。\n当靠近发生得太快，人很容易在没有确认之前就投入很多。\n你可以先把节奏放慢一点，不需要退出关系，只是不用再往前走那么快。', boundaryStatement:'真正稳定的连接，是可以被时间验证的。', desc:'他在不同人之间传递不同版本的故事，制造裂痕，让你的支持网络悄悄瓦解。当朋友们疏远你时，他已成为你「唯一理解你的人」。你的孤立，正是他设计的结果。', mechanism:'机制本质：伪理解 / 情感诱导' },
+        { name:'枯竭星球', subtitle:'枯竭星球（慢性消耗）', img:'Depletedplanet.webp', catImg:'Depletedplanet_cat.webp', npc:'阿图尔', sprite:'🐸', intro:'嘿！别看这儿现在干巴巴的，只要一点点火花，生命就会重新跳舞。', personality:'充满活力的长辈，热爱美食木工，语气豪迈开朗。', sampleVoice:'「哈！这破地方连火都懒得旺——可你来了，我就当你是那根火柴。」', dialogDesc:'他不会一次伤害你，而是通过重复与无改变，让你一点点耗尽。', dialogLines:['"嗯你说得对，我会改的。"（第二天）"我还是不行…"','"你再陪我想想办法吧？"'], state:'持续付出，但没有结果', hints:['同一个问题，在你们对话中出现过多少次？', '对方对你的建议，通常会如何回应？', '这些讨论在之后是否发生变化？', '你是否需要反复解释类似的内容？'], exercises:[{"title": "小练习 1", "action": "不再给新建议", "example": "", "reflection": ""}, {"title": "小练习 2", "action": "把问题\"还回去\"", "example": "\"你觉得你下一步会怎么做？\"", "reflection": ""}, {"title": "小练习 3", "action": "觉察", "example": "", "reflection": "\"我是在帮助，还是在维持这个循环？\""}], currentAdvice:'你已经在这段关系中投入了很多，但事情一直在重复，没有发生变化。\n这不是你不够用力，而是这个循环本身没有被打破。\n你可以先停下继续投入的那一步，观察会发生什么。', boundaryStatement:'有些消耗，是在你停止之后才会显现出来。', desc:'他不会一次摧毁你，而是每天消耗一点点。通过持续的否定与贬低，朋友、爱好、自信一一凋零。等你意识到时，你已经相信没有他你什么都不是。', mechanism:'机制本质：无效循环 / 能量流失' },
+        { name:'猎场星球', subtitle:'猎场星球（自我削弱）', img:'HuntingGround Planet.webp', catImg:'HuntingGround_Planet_cat.webp', npc:'阿斯特里德', sprite:'🦌', intro:'这里的风带着铁锈与干草的味道，你也是来追逐那道影子的吗？', personality:'优雅威严但慈爱的女性，关心生命的轮回。', sampleVoice:'「夜深了，猎物与猎人的界限会模糊——你心跳太快，我听得见。」她抿唇，像在品尝你的胆怯。', dialogDesc:'他通过否定与评价，让你逐渐失去对自己的信任。', dialogLines:['"你是不是有点太敏感了？"','"说实话，你也没那么厉害。"','"如果没有我提醒，你可能早就搞砸了。"'], state:'开始怀疑自己是否有问题', hints:['对方是否会评价你的行为或想法？', '这些评价通常是具体的，还是模糊的？', '在表达自己前，你会不会先调整措辞？', '你是否会在对话后重新审视自己的表达？'], exercises:[{"title": "小练习 1", "action": "说出那句话", "example": "", "reflection": ""}, {"title": "小练习 2", "action": "不修饰表达", "example": "不加\"可能是我想多了\"这种前缀", "reflection": ""}, {"title": "小练习 3", "action": "觉察", "example": "", "reflection": "\"我是在表达，还是在提前防御？\""}], currentAdvice:'你已经开始在表达前犹豫，甚至提前修正自己，来避免被否定。\n这不是你变了，而是你在适应一种环境。\n现在你可以慢慢把表达拿回来一点，不需要一次说很多，只是让真实的想法存在。', boundaryStatement:'你不需要先削弱自己，才有资格表达。', desc:'他用「保护」将你驯化，让你相信离开他你将一无所有。通过持续的贬低，你的自信慢慢枯萎。即便被当场揭穿，他也永远不会承认。你以为得到了庇护，实则走进了猎网。', mechanism:'机制本质：贬低 / 控制感建立' },
+        { name:'荆棘星球', subtitle:'荆棘星球（冲突引爆）', img:'ThornPlanet.webp', catImg:'ThornPlanet_cat.webp', npc:'葛文', sprite:'🐾', intro:'刺虽然痛，但它能保护最柔软的心。你准备好跨越这些障碍了吗？', personality:'主角最好的朋友，冷淡且独立，语气简练真诚。', sampleVoice:'「疼就喊出来，别装作没事。刺扎进肉里的时候，沉默只会让它扎得更深。」', dialogDesc:'当混淆不再奏效，他会转向攻击。他通过投射，把自己的行为归因于你，让你无法自证。', dialogLines:['"你为什么总是这样？"','"我变成这样还不是因为你？"','"你从来没反思过自己吗？"'], state:'陷入不断解释与防御', hints:['你们的对话，多久会出现一次分歧？', '分歧出现后，通常会持续多久？', '对话中，是否容易从一个问题扩展到多个问题？', '结束时，通常是谁先停止沟通？'], exercises:[{"title": "小练习 1", "action": "停止争辩", "example": "", "reflection": ""}, {"title": "小练习 2", "action": "设定中断句", "example": "\"我们现在不是在同一个频道，我想先停一下。\"", "reflection": ""}, {"title": "小练习 3", "action": "觉察", "example": "", "reflection": "\"我是在沟通，还是在试图说服？\""}], currentAdvice:'你已经在很多次对话中投入了精力，但它们最后都变成了争辩。\n这不是沟通能力的问题，而是对话本身的方向已经变了。\n你可以开始减少"继续解释"的次数，让对话停在一个点上。', boundaryStatement:'不是每一场对话，都需要走到最后。', desc:'当混淆不够用时，他转为攻击。他用投射机制反击——把自己的行为归咎于你，让你无法反驳。每一次争辩都让你精疲力竭，而他却安然无恙。在这里，防守永远比进攻更累。', mechanism:'机制本质：攻击 + 投射 + 对抗消耗' },
+        { name:'藤蔓星球', subtitle:'藤蔓星球（情感寄生）', img:'VinePlanet.webp', catImg:'VinePlanet_cat.webp', npc:'爱丽丝', sprite:'🦔', intro:'花瓣落在水面上的声音真好听。亲爱的，你愿意陪我这个老太婆坐一会儿吗？', personality:'温柔祥和的老祖母，语气非常慢且柔和。', sampleVoice:'「孩子，慢点走。藤蔓会记住每一个停下来的脚印。」', dialogDesc:'他无法忍受孤独，需要你持续在场与回应。这不是爱，而是情感索取。', dialogLines:['"你今天怎么回这么慢…"','"我刚刚一直在等你。"','"没有你我真的不知道该怎么办。"'], state:'逐渐失去自己的时间与边界', hints:['对方联系你的频率是否稳定？', '如果你没有及时回复，会发生什么？', '对方是否会在不同时间段主动找你？', '你是否会调整自己的安排来回应对方？'], exercises:[{"title": "小练习 1", "action": "延迟回复", "example": "", "reflection": ""}, {"title": "小练习 2", "action": "减少一次主动回应", "example": "少发一条\"在吗 / 你呢\"", "reflection": ""}, {"title": "小练习 3", "action": "觉察", "example": "", "reflection": "\"这是我想回应，还是我习惯回应？\""}], currentAdvice:'你已经开始围绕"回应"来调整自己的节奏，哪怕没有明确要求，你也会下意识去配合。\n这不是依赖的结果，而是慢慢形成的习惯。\n你可以先从很小的地方改变节奏，不需要断开，只是稍微拉开一点距离。', boundaryStatement:'当节奏改变时，关系也会开始变化。', desc:'他无法忍受孤独，需要你持续在场与回应。这不是爱，而是情感索取。他说「只有你懂我」，但需要的不是你，而是「一个人」。你的时间与空间，在深情的表象下被悄悄蚕食。', mechanism:'机制本质：依赖绑定 / 空间侵蚀' }
+    ];
+    planetsData.forEach(p => { p.img = 'images/' + p.img; p.catImg = 'images/' + p.catImg; });
+
+    const STORAGE_WALLET  = 'moodRealm_wallet';
+    const STORAGE_DEMO    = 'moodRealm_demo';
+    const STORAGE_JOURNEY = 'moodRealm_journey';
+    const STORAGE_FUEL    = 'moodRealm_fuel';
+
+    let walletAddress = sessionStorage.getItem(STORAGE_WALLET) || '';
+    let demoMode = sessionStorage.getItem(STORAGE_DEMO) === '1';
+    let chatTurnCount = 0;
+    let detailChatCount = 0;
+    let pendingRedirectPlanet = null;
+
+    const carousel = document.getElementById('carousel');
+    const titleEl  = document.getElementById('planet-title');
+    const subtitleEl = document.getElementById('planet-subtitle');
+    const items = [];
+
+    let currentAngle=0, targetAngle=0, isDragging=false, startX=0, startAngle=0, velocity=0, activeIndex=0, dragStartIndex=0;
+
+    function toggleNavMenu() {
+        document.getElementById('nav-hamburger').classList.toggle('is-open');
+        document.getElementById('nav-links').classList.toggle('is-open');
+    }
+    function navTo(id) { closeNavMenu(); setScene(id); }
+    function navToJourney() { closeNavMenu(); openJourney(); }
+    function closeNavMenu() {
+        document.getElementById('nav-hamburger').classList.remove('is-open');
+        document.getElementById('nav-links').classList.remove('is-open');
+    }
+    function collapseChatArea() {
+        document.querySelector('.detail-right').classList.remove('chat-expanded');
+        document.getElementById('detail-hints').style.display = 'flex';
+        const chatEl = document.getElementById('detail-chat-text');
+        chatEl.style.display = 'none'; chatEl.innerHTML = '';
+        document.getElementById('btn-resonance-detail').style.display = 'none';
+    }
+
+    function getStep() { return 360 / planetsData.length; }
+    function getIndexFromAngle(angle) {
+        const step = getStep(); let norm = angle % 360;
+        if (norm > 0) norm -= 360;
+        let idx = Math.round(-norm / step) % planetsData.length;
+        if (idx < 0) idx += planetsData.length; return idx;
+    }
+    function nearestAngleForIndex(currentAngle, index) {
+        const step = getStep(), ideal = -index * step;
+        const k = Math.round((currentAngle - ideal) / 360);
+        return ideal + k * 360;
+    }
+
+    function initPlanets() {
+        planetsData.forEach((data, index) => {
+            const wrap = document.createElement('div'); wrap.className = 'planet-wrap';
+            const body = document.createElement('div'); body.className = 'planet-body';
+            const img  = document.createElement('img');
+            img.src = encodeURI(data.img); img.alt = data.name;
+            img.onerror = () => { body.style.background = 'linear-gradient(135deg,#8b6fa8,#4a3570)'; };
+            body.appendChild(img);
+            wrap.appendChild(body);
+            wrap.appendChild(Object.assign(document.createElement('div'), {className:'planet-shadow'}));
+            carousel.appendChild(wrap); items.push(wrap);
+            wrap.addEventListener('click', () => {
+                if (index !== activeIndex) snapToPlanet(index); else openPlanetDetail();
+            });
+        });
+        updatePlanets(); animate(); updateUI(0);
+    }
+
+    function snapToPlanet(index) { targetAngle = nearestAngleForIndex(targetAngle, index); velocity = 0; }
+
+    function updatePlanets() {
+        const w = Math.min(window.innerWidth, 1920);
+        const rx = w * (w < 520 ? 0.34 : w < 900 ? 0.4 : 0.23);
+        items.forEach((item, i) => {
+            let rad = (currentAngle + i * (360/planetsData.length)) * Math.PI / 180;
+            let z = Math.cos(rad), x = Math.sin(rad), nz = (z+1)/2;
+            item.style.transform = `translate(${-x*rx}px, ${-z*10}px) scale(${0.4+Math.pow(nz,2.5)*1.2})`;
+            item.style.zIndex    = Math.round(nz*100);
+            item.style.opacity   = 0.3 + nz*0.7;
+            item.style.filter    = `blur(${(1-z)*4}px) brightness(${0.7+nz*0.35})`;
+        });
+    }
+
+    function animate() {
+        if (!isDragging) {
+            velocity *= 0.85; targetAngle += velocity;
+            if (Math.abs(velocity) < 0.8) {
+                const step = getStep(), snap = Math.round(targetAngle/step)*step;
+                targetAngle += (snap - targetAngle) * 0.22;
+            }
+        }
+        currentAngle += (targetAngle - currentAngle) * 0.12;
+        updatePlanets();
+        let norm = targetAngle % 360; if (norm > 0) norm -= 360;
+        let newIdx = Math.round(-norm / getStep()) % planetsData.length;
+        if (newIdx < 0) newIdx += planetsData.length;
+        if (newIdx !== activeIndex) { activeIndex = newIdx; updateUI(activeIndex); }
+        requestAnimationFrame(animate);
+    }
+
+    function updateUI(idx) {
+        const d = planetsData[idx];
+        titleEl.style.opacity = 0;
+        setTimeout(() => {
+            titleEl.innerText   = d.name;
+            subtitleEl.innerText = `— ${d.subtitle} —`;
+            titleEl.style.opacity = 1;
+        }, 150);
+    }
+
+    function shortAddr(a) {
+        if (!a || a.length < 10) return a || '未连接';
+        return a.slice(0,6) + '…' + a.slice(-4);
+    }
+
+    /* 导航高亮 */
+    function setNavActive(id) {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        const el = document.getElementById(id); if (el) el.classList.add('active');
+    }
+
+    function setScene(id) {
+        document.querySelectorAll('.scene').forEach(s => s.classList.remove('is-active'));
+        const t = document.getElementById(id); if (t) t.classList.add('is-active');
+        const nav = document.getElementById('top-nav');
+        const showNav = ['carousel-scene','detail-scene','result-scene','journey-scene','fuel-scene','stamp-scene'].includes(id);
+        nav.classList.toggle('is-visible', showNav);
+        // 导航高亮
+        const map = {'carousel-scene':'nav-planet','fuel-scene':'nav-fuel','stamp-scene':'nav-stamp','journey-scene':'nav-journey'};
+        if (map[id]) setNavActive(map[id]);
+    }
+
+    function enterHome() { setScene('carousel-scene'); }
+
+    async function connectMetaMask() {
+        if (!window.ethereum) { alert('未检测到 MetaMask，请安装后重试，或使用演示模式。'); return; }
+        try {
+            const acc = await window.ethereum.request({method:'eth_requestAccounts'});
+            if (acc && acc[0]) {
+                walletAddress = acc[0]; demoMode = false;
+                sessionStorage.setItem(STORAGE_WALLET, walletAddress);
+                sessionStorage.removeItem(STORAGE_DEMO);
+                addFuelLog('连接钱包奖励', 10);
+                enterHome();
+            }
+        } catch(e) { console.warn(e); }
+    }
+
+    function enterDemo() {
+        demoMode = true; walletAddress = '';
+        sessionStorage.setItem(STORAGE_DEMO,'1');
+        sessionStorage.removeItem(STORAGE_WALLET);
+        enterHome();
+    }
+
+    function initEntry() {
+        if (sessionStorage.getItem(STORAGE_WALLET) || sessionStorage.getItem(STORAGE_DEMO)==='1') {
+            demoMode = sessionStorage.getItem(STORAGE_DEMO)==='1';
+            walletAddress = sessionStorage.getItem(STORAGE_WALLET)||'';
+            enterHome();
+        } else { setScene('connect-scene'); }
+    }
+
+    function openPlanetDetail() {
+        const d = planetsData[activeIndex];
+        document.getElementById('detail-planet-name').textContent = d.name;
+        document.getElementById('detail-card-subtitle').textContent = d.subtitle || '';
+        // document.getElementById('sample-desc').textContent = d.dialogDesc || '';
+        const linesEl = document.getElementById('sample-dialog-lines');
+        linesEl.innerHTML = (d.dialogLines || []).map(l => `<div class="sample-dialog-line">${l}</div>`).join('');
+        document.getElementById('sample-state').textContent = d.state ? '你的状态：' + d.state : '';
+        document.getElementById('detail-planet-desc').textContent = d.desc || '';
+        document.getElementById('detail-mechanism').textContent = d.mechanism || '';
+        // 猫咪插画
+        const catImg = document.getElementById('detail-cat-img');
+        catImg.src = encodeURI(d.catImg || d.img);
+        catImg.onerror = () => { catImg.parentElement.style.display = 'none'; };
+        // 重置对话 + 引导提问
+        const chatEl2 = document.getElementById('detail-chat-text');
+        chatEl2.style.display = 'none'; chatEl2.innerHTML = '';
+        const hintsEl = document.getElementById('detail-hints');
+        hintsEl.style.display = 'flex';
+        const allHints = d.hints || [];
+        const shuffled = allHints.slice().sort(() => Math.random() - 0.5);
+        const picked = shuffled.slice(0, 2);
+        hintsEl.innerHTML = picked.map(h => `<div class="detail-hint-item">${h}</div>`).join('');
+        document.getElementById('detail-user-input').value = '';
+        document.getElementById('btn-resonance-detail').style.display = 'none';
+        detailChatCount = 0;
+        // 重置右侧展开状态
+        document.querySelector('.detail-right').classList.remove('chat-expanded');
+        setScene('detail-scene');
+    }
+
+    /* ─── 关键词匹配系统（无需 API） ─── */
+    /* ─── 关键词匹配系统 ─── */
+    const keywordDB = [
+        {
+            planet: '迷雾星球',
+            core: ['记错','没说过','不是这样','你想多了','误会'],
+            weak: ['不一样','敏感','理解错','你自己问题'],
+            strongReply: '你不是记错了，是被动开始怀疑自己了。\n\n你有没有发现，你已经不太去确认当时发生了什么，而是先在脑子里想一遍——"是不是我理解错了？"\n\n当一个人反复用很确定的语气否认你，大脑会为了减少冲突，自动往"是不是我错了"去靠。\n\n有些关系会通过不断改写细节、否认表达，让对话失去一个稳定的版本。\n\n久了之后，你不再去确认事实，而是习惯先怀疑自己。'
+        },
+        {
+            planet: '泪海星球',
+            core: ['很惨','为什么是我','没人理解','好痛苦'],
+            weak: ['很累','算了','一直这样','没办法'],
+            strongReply: '你不是不够耐心，是这些情绪一直没有结束。\n\n你可能已经听过很多次类似的话。内容差不多，情绪也差不多。你会继续回应，但心里其实知道——这次大概率也不会有什么不同。\n\n当一个人停在情绪里，却没有真正处理问题，倾诉就会变成一种循环。\n\n你的回应会短暂缓解他，但问题本身不会离开。\n\n久了之后，这些情绪不会消失，只会慢慢转移到你身上。'
+        },
+        {
+            planet: '债务星球',
+            core: ['因为你','都是你','你让我','要不是你','你害的'],
+            weak: ['你应该','你怎么不','如果你当时','你早点'],
+            strongReply: '你不是做错了，是被慢慢放到了"要负责"的位置上。\n\n你有没有发现，聊着聊着，话题就变成你在解释自己。有时候甚至会说出"对不起"，但你回头想，其实一开始并不是你的问题。\n\n当一个人把情绪和你的行为绑定在一起时，你会很自然地去修复、去补偿。\n\n久了之后，对话的结构会发生变化——从"他在表达感受"，变成"你需要为结果负责"。\n\n你承担的，已经不只是你的部分。'
+        },
+        {
+            planet: '面具星球',
+            core: ['只有你懂我','你懂我','你不一样'],
+            weak: ['信任你','特别','很少跟别人说','只有你'],
+            strongReply: '你不是太容易相信人，是这段靠近本来就来得很快。\n\n一开始你会觉得很少见——有人这么快理解你，说的话也刚好击中你。\n\n你没有太多防备，就把一些比较深的东西说出来了。\n\n当一个人快速进入你的情绪世界，共鸣会被放大，边界会被缩短。\n\n这种连接看起来像信任，但它往往还没有经过时间的验证。你以为是慢慢建立的，其实已经提前发生了。'
+        },
+        {
+            planet: '枯竭星球',
+            core: ['还是不行','又这样','一样','没用'],
+            weak: ['试过了','做不到','改不了','再试试'],
+            strongReply: '你不是没帮到，是这件事一直在原地打转。\n\n你其实已经说过很多次了。怎么做、可以试什么，甚至讲得很具体。\n\n但过几天，一切又回到原点，你又要再说一遍。\n\n当问题不断重复，却没有发生变化，帮助就会变成一种消耗。\n\n你不是没有付出，而是这些付出没有被带走。你给出去的东西，一直留在这里。'
+        },
+        {
+            planet: '猎场星球',
+            core: ['你太敏感','幼稚','不成熟','你有问题'],
+            weak: ['你不懂','想太简单','不对','应该这样'],
+            strongReply: '你不是变得小心了，是慢慢不太敢表达了。\n\n你开始在说话前停一下，想一想这样说，会不会又被说"太敏感"或者"不成熟"。\n\n有时候你会改掉原本想说的话，或者干脆不说。\n\n当表达一次次被评价、被否定，人会本能地收缩自己，去避免再次被攻击。\n\n久了之后，你减少的不是冲突，而是表达本身。你还在，但声音变小了。'
+        },
+        {
+            planet: '荆棘星球',
+            core: ['你为什么总是','你从来不','每次都','都是你的问题'],
+            weak: ['吵','争','解释','又来了'],
+            strongReply: '你不是不会沟通，是这段对话根本没打算让你被理解。\n\n你们很容易聊着聊着就变成争辩。你试着解释，但越解释，对方越激动；话题也会从一件事，变成很多件事。\n\n到最后，你花了很多力气在说清楚，但对方并没有真的在听。\n\n当对话不断被推向对抗，沟通就不再是为了理解，而是为了分出对错。\n\n你不是在沟通，而是在消耗。'
+        },
+        {
+            planet: '藤蔓星球',
+            core: ['怎么不回','在吗','回我','等你'],
+            weak: ['陪我','一直找','需要你','别走'],
+            strongReply: '你不是在主动回应，而是慢慢变成"必须回应"。\n\n你会不自觉看手机，不是因为有事，而是怕错过他的消息。\n\n有时候你也说不清，是你在找他，还是已经变成一种习惯。\n\n当一个人持续把情绪寄托在你身上，你的在场就会变成维持关系的条件。\n\n久了之后，你的回应不再是选择，而是一种默认义务。'
+        }
+    ];
+
+    // 弱命中：二次追问（不暴露星球）
+    const weakFollowUps = [
+        '我先确认一个细节——\n\n对方在表达情绪的时候，会提到你吗？',
+        '我先确认一个细节——\n\n你们的对话，通常是你在解释，还是在被理解？',
+        '我先确认一个细节——\n\n这种情况，是偶尔发生，还是已经重复很多次了？',
+        '我先确认一个细节——\n\n你当时，有没有一句话想说，但最后没说？'
+    ];
+
+    // 兜底文案（完全未命中）
+    const fallbackBodies = [
+        '我大概能感觉到你在说的这种状态。\n\n不是一件很具体的事，而是慢慢累积出来的。',
+        '有时候不是哪一句话出了问题，\n\n而是每一次对话，都消耗了一点点。'
+    ];
+
+    // 每次回复后的继续钩子
+    const hooks = [
+        '\n\n你能想起最近一次类似的对话吗？',
+        '\n\n当时他说的哪一句，让你最不舒服？',
+        '\n\n那次之后，你做了什么？',
+        '\n\n你当时，其实是想说什么，但没说出口？'
+    ];
+
+    function randomOf(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function matchKeywords(text) {
+        let bestDB = null, bestCore = 0, bestTotal = 0;
+        for (const db of keywordDB) {
+            let core = 0, weak = 0;
+            for (const k of db.core) { if (text.includes(k)) core += 3; }
+            for (const k of db.weak) { if (text.includes(k)) weak += 1; }
+            const total = core + weak;
+            if (core > bestCore || (core === bestCore && total > bestTotal)) {
+                bestCore = core; bestTotal = total; bestDB = db;
+            }
+        }
+        // 全局弱分（跨星球累计）
+        let globalWeak = 0;
+        for (const db of keywordDB) {
+            for (const k of db.weak) { if (text.includes(k)) globalWeak++; }
+        }
+        if (bestCore >= 3)   return { type: 'strong', db: bestDB };
+        if (globalWeak >= 2) return { type: 'weak' };
+        if (bestTotal >= 1)  return { type: 'low', db: bestDB };
+        return { type: 'none' };
+    }
+
+    /* 详情页对话：关键词匹配，不调用 API */
+    // ─── DeepSeek API Key（填入后启用 AI 分类） ───
+    const DEEPSEEK_KEY = "sk-9f1366c944d14aa2b50ad7d3406c1090";
+
+    /* DeepSeek：判断关系模式类型 + 提炼核心感受 */
+    async function analyzeWithDeepSeek(text) {
+        // 动态构建每个星球的完整特征描述
+        const planetDesc = keywordDB.map(db => {
+            const pd = planetsData.find(p => p.name === db.planet) || {};
+            return `【${db.planet}】
+机制：${pd.mechanism || ''}
+本质描述：${pd.desc || ''}
+核心关键词：${db.core.join('、')}
+辅助关键词：${db.weak.join('、')}
+典型对话示例：${(pd.dialogLines || []).join(' / ')}`;
+        }).join('\n\n');
+
+        const systemPrompt = `你是一个情感关系模式分析助手。用户描述一段关系中发生的事或感受。
+
+以下是8种情绪关系模式的详细特征：
+
+${planetDesc}
+
+任务：
+1. 根据以上特征，判断用户描述最匹配哪一种模式（填写星球名）
+2. 用一句话（15-30字，第一人称）完整提炼用户的核心处境与感受，体现具体情境，不要笼统概括（例如"感觉不管我说什么他都能把责任推回到我身上，我开始反复道歉"）
+只返回纯JSON，格式：{"planet":"星球名","confidence":"high|medium|low","summary":"核心感受"}
+无法判断时 planet 填"未知"`;
+        const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_KEY}` },
+            body: JSON.stringify({
+                model: 'deepseek-chat', max_tokens: 150, temperature: 0.2,
+                messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: text }]
+            })
+        });
+        if (!resp.ok) throw new Error('API error ' + resp.status);
+        const data = await resp.json();
+        const raw = data.choices?.[0]?.message?.content || '{}';
+        return JSON.parse(raw.replace(/```json|```/g, '').trim());
+    }
+
+    /* 详情页对话：DeepSeek 分类 → 本地模板 */
+    function appendChatMsg(role, text, typing = false) {
+        const chatEl = document.getElementById('detail-chat-text');
+        const wrap = document.createElement('div');
+        wrap.className = 'chat-msg ' + role;
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble' + (typing ? ' is-typing' : '');
+        bubble.textContent = typing ? '· · ·' : text;
+        wrap.appendChild(bubble);
+        chatEl.appendChild(wrap);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        return bubble;
+    }
+
+    async function submitDetailChat() {
+        const inp = document.getElementById('detail-user-input');
+        const text = inp.value.trim(); if (!text) return;
+        inp.value = '';
+        document.getElementById('detail-hints').style.display = 'none';
+        const chatEl = document.getElementById('detail-chat-text');
+        chatEl.style.display = 'flex';
+
+        // 立即显示用户消息
+        appendChatMsg('user', text);
+        // AI 正在输入占位
+        const aiBubble = appendChatMsg('ai', '', true);
+
+        let reply = '';
+        const currentPlanet = planetsData[activeIndex];
+        try {
+            if (!DEEPSEEK_KEY) throw new Error('no key');
+            const result = await analyzeWithDeepSeek(text);
+            const matched = keywordDB.find(d => d.planet === result.planet);
+            if (matched && matched.planet === currentPlanet.name) {
+                reply = matched.strongReply;
+            } else if (matched && matched.planet !== currentPlanet.name) {
+                pendingRedirectPlanet = matched.planet;
+                reply = `我听到你了。你说的这些，和「${matched.planet}」很像——我来带你过去，在那里继续陪你说。`;
+            } else {
+                reply = randomOf(fallbackBodies);
+            }
+        } catch(e) {
+            console.error('DeepSeek error:', e);
+            const fallback = matchKeywords(text);
+            if (fallback.type === 'strong') {
+                if (fallback.db.planet === currentPlanet.name) {
+                    reply = fallback.db.strongReply;
+                } else {
+                    pendingRedirectPlanet = fallback.db.planet;
+                    reply = `我听到你了。你说的这些，和「${fallback.db.planet}」很像——我来带你过去，在那里继续陪你说。`;
+                }
+            } else {
+                reply = randomOf(fallbackBodies);
+            }
+        }
+
+        const delay = 800 + Math.random() * 700;
+        setTimeout(() => {
+            aiBubble.classList.remove('is-typing');
+            aiBubble.textContent = '';
+            let i = 0;
+            const chars = [...reply];
+            const timer = setInterval(() => {
+                aiBubble.textContent += chars[i++];
+                chatEl.scrollTop = chatEl.scrollHeight;
+                if (i >= chars.length) {
+                    clearInterval(timer);
+                    detailChatCount++;
+                    if (pendingRedirectPlanet) {
+                        const rp = pendingRedirectPlanet;
+                        pendingRedirectPlanet = null;
+                        const savedHTML = chatEl.innerHTML;
+                        setTimeout(() => redirectToPlanet(rp, savedHTML), 1400);
+                    } else {
+                        document.getElementById('btn-resonance-detail').style.display = 'block';
+                    }
+                }
+            }, 18);
+        }, delay);
+    }
+
+    function redirectToPlanet(name, savedHTML) {
+        const idx = planetsData.findIndex(p => p.name === name);
+        if (idx < 0) return;
+        snapToPlanet(idx);
+        activeIndex = idx;
+        updateUI(idx);
+        openPlanetDetail();  // 重置 UI、切换星球信息
+        // 恢复对话记录
+        const chatEl = document.getElementById('detail-chat-text');
+        chatEl.innerHTML = savedHTML;
+        chatEl.style.display = 'flex';
+        // 新星球的继续语
+        const pd = planetsData[idx];
+        appendChatMsg('ai', `这里是「${pd.name}」。你刚才说的，我都带过来了——继续说吧。`);
+        chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    /* ─── 语音输入 ─── */
+    function initVoiceInput() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const btn = document.getElementById('btn-detail-mic');
+        if (!SpeechRecognition || !btn) return;
+
+        const rec = new SpeechRecognition();
+        rec.lang = 'zh-CN';
+        rec.continuous = false;
+        rec.interimResults = false;
+
+        let isRec = false;
+        btn.addEventListener('click', () => {
+            if (isRec) { rec.stop(); return; }
+            rec.start();
+        });
+        rec.onstart = () => {
+            isRec = true;
+            btn.classList.add('is-recording');
+            btn.title = '正在聆听…';
+        };
+        rec.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            const inp = document.getElementById('detail-user-input');
+            inp.value = (inp.value + transcript).trim();
+            inp.focus();
+        };
+        rec.onend = () => {
+            isRec = false;
+            btn.classList.remove('is-recording');
+            btn.title = '语音输入';
+        };
+        rec.onerror = () => {
+            isRec = false;
+            btn.classList.remove('is-recording');
+        };
+    }
+
+    // 星球图片映射（Planet 文件夹）
+    const planetImgMap = {
+        '迷雾星球':   'images/Planet/Misty Planet.webp',
+        '泪海星球':   'images/Planet/Tears of Planet.webp',
+        '债务星球':   'images/Planet/Debt Planet.webp',
+        '面具星球':   'images/Planet/Mask Planet.webp',
+        '枯竭星球':   'images/Planet/Depleted planet.webp',
+        '猎场星球':   'images/Planet/Hunting Ground Planet.webp',
+        '荆棘星球':   'images/Planet/Thorn Planet.webp',
+        '藤蔓星球':   'images/Planet/Vine Planet.webp',
+    };
+
+    function renderStampScene(stampName) {
+        let journey = [];
+        try { journey = JSON.parse(localStorage.getItem(STORAGE_JOURNEY) || '[]'); } catch(e) {}
+        // 统计每个星球的共鸣次数
+        const counts = {};
+        planetsData.forEach(p => { counts[p.name] = 0; });
+        journey.forEach(entry => { if (counts[entry.planet] !== undefined) counts[entry.planet]++; });
+
+        const grid = document.getElementById('stamp-planet-grid');
+        grid.innerHTML = planetsData.map(p => {
+            const imgSrc = planetImgMap[p.name] || p.img;
+            const count  = counts[p.name] || 0;
+            return `<div class="stamp-planet-item" data-planet="${p.name}">
+                <img class="stamp-planet-img" src="${encodeURI(imgSrc)}" alt="${p.name}" />
+                <div class="stamp-planet-label">你在${p.name}留下印记</div>
+                <div class="stamp-planet-count">${count}<span>次</span></div>
+            </div>`;
+        }).join('');
+
+        // 点击星球进入 NFT 记录
+        grid.querySelectorAll('.stamp-planet-item').forEach(el => {
+            el.addEventListener('click', () => openStampNFT(el.dataset.planet));
+        });
+
+        document.getElementById('stamp-overview').style.display = 'flex';
+        document.getElementById('stamp-nft-page').style.display = 'none';
+        setScene('stamp-scene');
+    }
+
+    function openStampNFT(planetName) {
+        const cardImgMap = {
+            '迷雾星球':   'images/ip_card/MistyPlanet_card.webp',
+            '泪海星球':   'images/ip_card/TearsOfPlanet_card.webp',
+            '债务星球':   'images/ip_card/DebtPlanet_card.webp',
+            '面具星球':   'images/ip_card/MaskPlanet_card.webp',
+            '枯竭星球':   'images/ip_card/Depletedplanet_card.webp',
+            '猎场星球':   'images/ip_card/HuntingGround Planet_card.webp',
+            '荆棘星球':   'images/ip_card/ThornPlanet_card.webp',
+            '藤蔓星球':   'images/ip_card/VinePlanet_card.webp',
+        };
+
+        let journey = [];
+        try { journey = JSON.parse(localStorage.getItem(STORAGE_JOURNEY) || '[]'); } catch(e) {}
+        const records = journey.filter(e => e.planet === planetName);
+
+        const nameEl = document.getElementById('stamp-nft-title'); nameEl.textContent = planetName;
+        const nftGrid = document.getElementById('stamp-nft-grid');
+        const imgSrc = cardImgMap[planetName] || '';
+
+        if (!records.length) {
+            nftGrid.innerHTML = `<div class="stamp-nft-empty"><div>暂未在此星球留下印记</div></div>`;
+        } else {
+            nftGrid.innerHTML = records.map(r => {
+                const timeStr = r.t ? new Date(r.t).toLocaleString('zh-CN', {dateStyle:'short', timeStyle:'short', timeZone:'Asia/Shanghai'}) : '';
+                const stampName = r.stampName || '';
+                return `<div class="stamp-nft-card"
+                    data-img="${encodeURI(imgSrc)}"
+                    data-planet="${planetName}"
+                    data-time="${timeStr}"
+                    data-name="${stampName.replace(/"/g, '&quot;')}">
+                    <img src="${encodeURI(imgSrc)}" alt="${planetName}" />
+                    <div class="stamp-nft-card-label">
+                        <div class="stamp-nft-card-planet">${planetName}</div>
+                        ${stampName ? `<div class="stamp-nft-card-name">${stampName}</div>` : ''}
+                        <div class="stamp-nft-card-time">${timeStr}</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            nftGrid.querySelectorAll('.stamp-nft-card').forEach(card => {
+                card.addEventListener('click', () =>
+                    openStampLightbox(card.dataset.img, card.dataset.planet, card.dataset.time, card.dataset.name));
+            });
+        }
+
+        document.getElementById('stamp-overview').style.display = 'none';
+        document.getElementById('stamp-nft-page').style.display = 'flex';
+    }
+
+    function openStampLightbox(imgSrc, planetName, timeStr, stampName) {
+        const lb = document.createElement('div');
+        lb.className = 'stamp-lightbox';
+        const parts = (timeStr || '').split(' ');
+        const datePart = parts[0] || '';
+        const timePart = parts[1] || '';
+        lb.innerHTML = `
+            <button class="stamp-lightbox-close">&#10005;</button>
+            <div class="stamp-lightbox-img-wrap">
+                <img src="${imgSrc}" style="max-width:90vw;max-height:90vh;aspect-ratio:3/4;object-fit:cover;border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,.7);display:block;" />
+                <div class="stamp-nft-seal">
+                    <div class="stamp-nft-seal-planet">${planetName || ''}</div>
+                    ${stampName ? `<div class="stamp-nft-seal-planet" style="font-size:10px;margin-top:1px;">${stampName}</div>` : ''}
+                    <div class="stamp-nft-seal-date">${datePart}</div>
+                    <div class="stamp-nft-seal-time">${timePart}</div>
+                </div>
+            </div>`;
+        lb.addEventListener('click', e => { if (e.target === lb) lb.remove(); });
+        lb.querySelector('.stamp-lightbox-close').addEventListener('click', e => { e.stopPropagation(); lb.remove(); });
+        document.body.appendChild(lb);
+    }
+
+
+    /* ─── 练习弹窗逻辑 ─── */
+    let _currentExItem = null;
+    let _currentPlanetName = '';
+
+    function openExerciseModal(ex, cardEl, planetName) {
+        _currentPlanetName = planetName || '';
+        _currentExItem = cardEl;
+        document.getElementById('modal-tag').textContent = ex.title;
+        document.getElementById('modal-action').textContent = ex.action;
+        const exampleEl = document.getElementById('modal-example');
+        const hint = ex.example || ex.reflection || '';
+        if (hint) { exampleEl.textContent = hint; exampleEl.style.display = 'block'; }
+        else { exampleEl.style.display = 'none'; }
+        document.getElementById('modal-textarea').value = '';
+        document.getElementById('exercise-modal').classList.add('is-open');
+        setTimeout(() => document.getElementById('modal-textarea').focus(), 100);
+    }
+
+    function closeExerciseModal() {
+        document.getElementById('exercise-modal').classList.remove('is-open');
+        _currentExItem = null;
+    }
+
+    function confirmExercise() {
+        const text = document.getElementById('modal-textarea').value.trim();
+        closeExerciseModal();
+        if (!_currentExItem) return;
+        // 标记卡片完成
+        _currentExItem.classList.add('is-done');
+        _currentExItem.querySelector('.exercise-check-btn').textContent = '✓';
+        const record = _currentExItem.querySelector('.exercise-user-record');
+        if (record) record.textContent = text || '已完成';
+        // 奖励 +1 MOOD
+        addFuelLog('完成练习任务', 1);
+        // 全部完成时提示
+        const allItems = document.querySelectorAll('#result-exercises .exercise-item');
+        const doneCount = document.querySelectorAll('#result-exercises .exercise-item.is-done').length;
+        if (doneCount >= allItems.length) {
+            const mintBtn = document.getElementById('btn-mint-mock');
+            mintBtn.textContent = '生成完整印记 ✦';
+            mintBtn.style.boxShadow = '0 0 0 3px rgba(146,129,191,.5), 0 8px 24px rgba(255,220,115,.5)';
+        }
+    }
+
+
+    /* 从旅程打开历史条目 */
+    function openJourneyEntry(idx) {
+        let arr = [];
+        try { arr = JSON.parse(localStorage.getItem(STORAGE_JOURNEY)||'[]'); } catch(e) { return; }
+        const entry = arr[idx];
+        if (!entry) return;
+
+        const pData = planetsData.find(p => p.name === entry.planet) || planetsData[0];
+
+        // 填充结果页
+        const illu = document.getElementById('result-illu');
+        illu.style.display = 'block'; illu.src = encodeURI(pData.img);
+        document.getElementById('result-analysis').textContent = pData.currentAdvice || buildAnalysisText(pData);
+        document.getElementById('result-boundary').textContent = pData.boundaryStatement || '';
+        document.getElementById('result-token-line').textContent = '';
+        document.getElementById('result-nft-line').textContent = '';
+
+        // 恢复练习状态
+        const exEl = document.getElementById('result-exercises');
+        const exercises = entry.exercises || pData.exercises || [];
+        exEl.innerHTML = exercises.map((ex, i) => `
+            <div class="exercise-item${ex.done ? ' is-done' : ''}" data-journey-idx="${idx}" data-ex-idx="${i}" style="cursor:${ex.done?'default':'pointer'};">
+                <button class="exercise-check-btn" type="button">${ex.done ? '✓' : ''}</button>
+                <div class="exercise-title">${ex.title}</div>
+                <div class="exercise-content">
+                    <div class="exercise-action">${ex.action}</div>
+                    ${ex.example ? `<div class="exercise-example">${ex.example}</div>` : ''}
+                    ${ex.reflection ? `<div class="exercise-reflection">${ex.reflection}</div>` : ''}
+                </div>
+                <div class="exercise-user-record">${ex.record || ''}</div>
+            </div>
+        `).join('');
+
+        // 若今天已完成该星球练习，锁定未完成卡片
+        if (isPlanetExDoneToday(entry.planet)) {
+            exEl.querySelectorAll('.exercise-item:not(.is-done)').forEach(item => {
+                item.classList.add('is-locked');
+                item.style.opacity = '0.5';
+                item.style.cursor = 'not-allowed';
+                item.title = '今天已完成该星球的全部练习，明天再来';
+            });
+        }
+        // 绑定点击
+        exEl.querySelectorAll('.exercise-item:not(.is-done)').forEach(item => {
+            item.addEventListener('click', () => {
+                const jIdx = parseInt(item.dataset.journeyIdx);
+                const eIdx = parseInt(item.dataset.exIdx);
+                const ex = exercises[eIdx];
+                _journeyExContext = { jIdx, eIdx };
+                openExerciseModal(ex, item, entry.planet);
+            });
+        });
+
+        // 生成印记按钮：已铸造则隐藏
+        const mintBtn = document.getElementById('btn-mint-mock');
+        if (entry.minted) {
+            mintBtn.style.display = 'none';
+        } else {
+            mintBtn.style.display = '';
+            mintBtn.textContent = '生成印记';
+            mintBtn.style.boxShadow = '';
+            // 若所有练习已完成
+            if (exercises.every(e => e.done)) {
+                mintBtn.textContent = '生成完整印记 ✦';
+                mintBtn.style.boxShadow = '0 0 0 3px rgba(146,129,191,.5), 0 8px 24px rgba(255,220,115,.5)';
+            }
+        }
+
+        setScene('result-scene');
+    }
+
+    // 旅程入口练习完成后保存到 localStorage
+    let _journeyExContext = null;
+
+    function openJourney() { renderJourney(); setScene('journey-scene'); }
+
+    /* ─── 旅程：散点星球布局 ─── */
+    function renderJourney() {
+        let arr = [];
+        try { arr = JSON.parse(localStorage.getItem(STORAGE_JOURNEY)||'[]'); } catch(e) { arr=[]; }
+        const nodesEl  = document.getElementById('journey-nodes');
+        const svgEl    = document.getElementById('journey-svg');
+        const innerEl  = document.getElementById('journey-inner');
+        const emptyEl  = document.getElementById('journey-empty');
+        const canvas   = document.getElementById('journey-canvas');
+        nodesEl.innerHTML = ''; svgEl.innerHTML = '';
+
+        if (!arr.length) { emptyEl.style.display='block'; innerEl.style.width='100%'; return; }
+        emptyEl.style.display = 'none';
+
+        // 时间线：最旧的在左，最新的在右（arr 是 unshift 顺序，index 0 = 最新）
+        const ordered = [...arr].reverse();
+        const count   = Math.min(ordered.length, 20);
+        const canvasH = canvas.offsetHeight || (window.innerHeight - 64);
+        const STEP    = 220;   // 每节点水平间距
+        const LEFT    = 140;   // 起始左边距
+        const midY    = canvasH / 2;
+        const AMP     = 90;    // 纵向随机振幅
+
+        // 为每个节点生成固定随机 Y（基于 index seed，保持一致）
+        const yList = ordered.slice(0, count).map((_, i) => {
+            const seed = Math.sin(i * 9.7 + 3.1) * 0.5 + 0.5; // 0-1 伪随机
+            return midY + (seed - 0.5) * 2 * AMP;
+        });
+        const xList = yList.map((_, i) => LEFT + i * STEP);
+
+        // 设置内容宽度
+        const totalW = LEFT + (count - 1) * STEP + LEFT;
+        innerEl.style.width  = totalW + 'px';
+        innerEl.style.height = '100%';
+        svgEl.setAttribute('width', totalW);
+        svgEl.setAttribute('height', canvasH);
+        svgEl.setAttribute('viewBox', `0 0 ${totalW} ${canvasH}`);
+
+        // 画贝塞尔曲线虚线
+        for (let i = 0; i < count - 1; i++) {
+            const x1 = xList[i], y1 = yList[i];
+            const x2 = xList[i+1], y2 = yList[i+1];
+            // 随机控制点：各自偏移
+            const r1 = (Math.sin(i * 5.3) * 0.5 + 0.5 - 0.5) * 2 * 60;
+            const r2 = (Math.sin(i * 7.1 + 2) * 0.5 + 0.5 - 0.5) * 2 * 60;
+            const cx1 = x1 + STEP * 0.35, cy1 = y1 + r1;
+            const cx2 = x2 - STEP * 0.35, cy2 = y2 + r2;
+            const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+            path.setAttribute('d', `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`);
+            path.setAttribute('class','journey-dashed-curve');
+            svgEl.appendChild(path);
+        }
+
+        // 放置星球节点（最新的最大）
+        ordered.slice(0, count).forEach((entry, i) => {
+            const x = xList[i], y = yList[i];
+            const isLatest = (i === count - 1);
+            const size = isLatest ? 90 : 64;
+            const pData = planetsData.find(p => p.name === entry.planet) || planetsData[0];
+            const dt = new Date(entry.t).toLocaleDateString('zh-CN');
+
+            const node = document.createElement('div');
+            node.className = 'journey-planet-node';
+            node.style.left = x + 'px';
+            node.style.top  = y + 'px';
+
+            const img = document.createElement('img');
+            img.className = 'journey-planet-img';
+            img.src = encodeURI(pData.img); img.alt = entry.planet;
+            img.style.width = img.style.height = size + 'px';
+            if (isLatest) img.style.boxShadow = '0 0 0 3px rgba(146,129,191,.6), 0 8px 28px rgba(0,0,0,.35)';
+            img.onerror = () => { img.style.background = '#8b6fa8'; };
+
+            const card = document.createElement('div');
+            card.className = 'journey-card';
+            card.dataset.journeyIdx = ordered.length - 1 - i; // 在 arr 中的真实 index
+            card.style.cursor = 'pointer';
+            card.innerHTML = `
+                <div class="journey-card-planet">${entry.planet}</div>
+                <div class="journey-card-summary">${(entry.summary||'一次共鸣记录').slice(0,20)}</div>
+                <div class="journey-card-date">${dt}</div>
+            `;
+            card.addEventListener('click', () => openJourneyEntry(parseInt(card.dataset.journeyIdx)));
+            node.appendChild(img); node.appendChild(card);
+            nodesEl.appendChild(node);
+        });
+
+        // 自动滚动到最右（最新）
+        requestAnimationFrame(() => { canvas.scrollLeft = totalW; });
+    }
+
+
+    /* ─── 每日练习限制（每星球每天最多 3 次）─── */
+    const STORAGE_DAILY = 'moodRealm_dailyEx';
+
+    function getTodayKey() {
+        const d = new Date();
+        return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    }
+
+    function getDailyRecord() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(STORAGE_DAILY) || 'null');
+            if (raw && raw.date === getTodayKey()) return raw;
+        } catch(e) {}
+        // 新的一天，重置
+        const fresh = { date: getTodayKey(), planets: {} };
+        localStorage.setItem(STORAGE_DAILY, JSON.stringify(fresh));
+        return fresh;
+    }
+
+    function getPlanetExCount(planetName) {
+        return getDailyRecord().planets[planetName] || 0;
+    }
+
+    function recordPlanetEx(planetName) {
+        const rec = getDailyRecord();
+        rec.planets[planetName] = (rec.planets[planetName] || 0) + 1;
+        localStorage.setItem(STORAGE_DAILY, JSON.stringify(rec));
+    }
+
+    function isPlanetExDoneToday(planetName) {
+        return getPlanetExCount(planetName) >= 3;
+    }
+
+    /* ─── 探索燃料 ─── */
+    function getFuel() {
+        try {
+            const d = JSON.parse(localStorage.getItem(STORAGE_FUEL) || 'null');
+            if (d && typeof d.amount === 'number') return d;
+        } catch(e) {}
+        return {amount: 0, log: []};
+    }
+    function saveFuel(data) { localStorage.setItem(STORAGE_FUEL, JSON.stringify(data)); }
+    function addFuelLog(desc, delta) {
+        const f = getFuel();
+        f.amount = Math.max(0, (f.amount || 0) + delta);
+        f.log = f.log || [];
+        f.log.unshift({desc, delta, t: Date.now()});
+        saveFuel(f);
+        refreshFuelUI();
+        if (delta > 0) showTokenToast(delta, desc, f.amount);
+    }
+    function showTokenToast(amount, desc, total) {
+        const overlay = document.getElementById('token-toast-overlay');
+        const toast   = document.getElementById('token-toast');
+        document.getElementById('token-toast-amount').textContent = '+' + amount;
+        document.getElementById('token-toast-desc').textContent   = desc;
+        document.getElementById('token-toast-total-val').textContent = total;
+        overlay.classList.add('is-visible');
+        toast.classList.add('is-visible');
+    }
+    function hideTokenToast() {
+        document.getElementById('token-toast-overlay').classList.remove('is-visible');
+        document.getElementById('token-toast').classList.remove('is-visible');
+    }
+    function refreshFuelUI() {
+        const f = getFuel();
+        const amount = Math.max(0, f.amount || 0);
+        document.getElementById('fuel-amount').textContent = amount;
+        const list = document.getElementById('fuel-log-list');
+        if (!f.log || !f.log.length) return;
+        list.innerHTML = f.log.slice(0,20).map(l => {
+            const dt = new Date(l.t).toLocaleString('zh-CN',{dateStyle:'short',timeStyle:'short'});
+            return `<div class="fuel-log-item">
+                <div><div class="fuel-log-desc">${l.desc}</div><div class="fuel-log-time">${dt}</div></div>
+                <div class="fuel-log-amount ${l.delta>0?'in':'out'}">${l.delta>0?'+':''}${l.delta}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function buildAnalysisText(d) {
+        return `【${d.name}】你在对话中的表达，与「${d.subtitle}」的情绪纹理相互呼应。此刻的状态可以理解为：你正允许自己被理解——这是共鸣被点燃时的典型征兆。`;
+    }
+    function showResult() {
+        const d = planetsData[activeIndex];
+        const illu = document.getElementById('result-illu');
+        illu.style.display='block'; illu.src=encodeURI(d.img);
+        illu.onerror = () => { illu.style.display='none'; };
+        // 分析文字（currentAdvice）
+        document.getElementById('result-analysis').textContent = d.currentAdvice || buildAnalysisText(d);
+        // 边界语句胶囊
+        document.getElementById('result-boundary').textContent = d.boundaryStatement || '';
+        // 三列练习卡
+        const exEl = document.getElementById('result-exercises');
+        if (d.exercises && d.exercises.length) {
+            exEl.innerHTML = d.exercises.map((ex, idx) => `
+                <div class="exercise-item" data-idx="${idx}" style="cursor:pointer;">
+                    <button class="exercise-check-btn" type="button"></button>
+                    <div class="exercise-title">${ex.title}</div>
+                    <div class="exercise-content">
+                        <div class="exercise-action">${ex.action}</div>
+                        ${ex.example ? `<div class="exercise-example">${ex.example}</div>` : ''}
+                        ${ex.reflection ? `<div class="exercise-reflection">${ex.reflection}</div>` : ''}
+                    </div>
+                    <div class="exercise-user-record"></div>
+                </div>
+            `).join('');
+        } else { exEl.innerHTML = ''; }
+
+        // 点卡片 → 弹窗（检查每日限制）
+        exEl.querySelectorAll('.exercise-item').forEach((item, idx) => {
+            item.addEventListener('click', () => {
+                if (item.classList.contains('is-done')) return;
+                if (item.classList.contains('is-locked')) return;
+                const ex = d.exercises[idx];
+                openExerciseModal(ex, item, d.name);
+            });
+        });
+        // 若今天已完成该星球全部练习，锁定所有未完成卡片
+        if (isPlanetExDoneToday(d.name)) {
+            exEl.querySelectorAll('.exercise-item:not(.is-done)').forEach(item => {
+                item.classList.add('is-locked');
+                item.style.opacity = '0.5';
+                item.style.cursor = 'not-allowed';
+                item.title = '今天已完成该星球的全部练习，明天再来';
+            });
+        }
+        document.getElementById('result-token-line').textContent = demoMode ? '消耗 Token：演示模式' : `消耗 Token：1 MOOD · ${shortAddr(walletAddress)}`;
+        document.getElementById('result-nft-line').textContent = '星球印记 NFT：待铸造';
+        setScene('result-scene');
+    }
+    function runTransitionThen(fn) {
+        const ov = document.getElementById('transition-overlay');
+        ov.classList.add('is-on'); ov.setAttribute('aria-hidden','false');
+        setTimeout(() => {
+            fn();
+            setTimeout(() => { ov.classList.remove('is-on'); ov.setAttribute('aria-hidden','true'); }, 380);
+        }, 980);
+    }
+    function triggerDetailResonance() {
+        const d = planetsData[activeIndex];
+        const summary = (document.getElementById('detail-chat-text').textContent||'').slice(0,200);
+        runTransitionThen(() => {
+            try {
+                const arr = JSON.parse(localStorage.getItem(STORAGE_JOURNEY)||'[]');
+                const exercises = (d.exercises||[]).map(ex => ({title:ex.title, action:ex.action, example:ex.example||'', reflection:ex.reflection||'', done:false, record:''}));
+                arr.unshift({t:Date.now(), planet:d.name, npc:d.npc, summary:summary.trim()||'一次共鸣记录', exercises, minted:false});
+                localStorage.setItem(STORAGE_JOURNEY, JSON.stringify(arr.slice(0,50)));
+            } catch(e) {}
+            addFuelLog(`共鸣于${d.name}`, -1);
+            showResult();
+        });
+    }
+    function initFlowUi() {
+        document.getElementById('btn-metamask').addEventListener('click', connectMetaMask);
+        document.getElementById('exercise-modal-close').addEventListener('click', closeExerciseModal);
+        document.getElementById('modal-confirm').addEventListener('click', () => {
+            const text = document.getElementById('modal-textarea').value.trim();
+            if (text.length < 15) {
+                document.getElementById('modal-textarea').style.border = '1.5px solid #e57373';
+                document.getElementById('modal-min-hint').style.display = 'block';
+                return;
+            }
+            const item = _currentExItem;
+            document.getElementById('exercise-modal').classList.remove('is-open');
+            if (!item) return;
+            item.classList.add('is-done');
+            item.querySelector('.exercise-check-btn').textContent = '✓';
+            const record = item.querySelector('.exercise-user-record');
+            if (record) record.textContent = text;
+            // 保存到旅程记录
+            if (_journeyExContext) {
+                try {
+                    const arr = JSON.parse(localStorage.getItem(STORAGE_JOURNEY)||'[]');
+                    const {jIdx, eIdx} = _journeyExContext;
+                    if (arr[jIdx] && arr[jIdx].exercises && arr[jIdx].exercises[eIdx]) {
+                        arr[jIdx].exercises[eIdx].done = true;
+                        arr[jIdx].exercises[eIdx].record = text;
+                        localStorage.setItem(STORAGE_JOURNEY, JSON.stringify(arr));
+                    }
+                } catch(e) {}
+                _journeyExContext = null;
+            }
+            _currentExItem = null;
+            // 记录每日完成次数，次数未满才给 token
+            const _pName = _currentPlanetName;
+            _currentPlanetName = '';
+            recordPlanetEx(_pName);
+            addFuelLog(`完成练习·${_pName}`, 1);
+            // 若今天该星球已满3次，锁定剩余卡片
+            if (isPlanetExDoneToday(_pName)) {
+                document.querySelectorAll('#result-exercises .exercise-item:not(.is-done)').forEach(item => {
+                    item.classList.add('is-locked');
+                    item.style.opacity = '0.5';
+                    item.style.cursor = 'not-allowed';
+                    item.title = '今天已完成该星球的全部练习，明天再来';
+                });
+            }
+            const allItems = document.querySelectorAll('#result-exercises .exercise-item');
+            const doneCount = document.querySelectorAll('#result-exercises .exercise-item.is-done').length;
+            if (doneCount >= allItems.length) {
+                const mintBtn = document.getElementById('btn-mint-mock');
+                mintBtn.textContent = '生成完整印记 ✦';
+                mintBtn.style.boxShadow = '0 0 0 3px rgba(146,129,191,.5), 0 8px 24px rgba(255,220,115,.5)';
+            }
+        });
+        // 输入时实时清除红框
+        document.getElementById('modal-textarea').addEventListener('input', () => {
+            const ta = document.getElementById('modal-textarea');
+            const hint = document.getElementById('modal-min-hint');
+            if (ta.value.trim().length >= 15) {
+                ta.style.border = 'none';
+                hint.style.display = 'none';
+            }
+        });
+        // 点遮罩关闭
+        document.getElementById('exercise-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('exercise-modal')) closeExerciseModal();
+        });
+        document.getElementById('btn-demo-mode').addEventListener('click', enterDemo);
+        document.getElementById('btn-planet-detail').addEventListener('click', openPlanetDetail);
+        document.getElementById('btn-detail-send').addEventListener('click', submitDetailChat);
+        document.getElementById('detail-user-input').addEventListener('keydown', e => { if(e.key==='Enter') submitDetailChat(); });
+        // 聚焦输入框时展开对话区
+        document.getElementById('detail-user-input').addEventListener('focus', () => {
+            document.querySelector('.detail-right').classList.add('chat-expanded');
+        });
+        document.getElementById('btn-resonance-detail').addEventListener('click', triggerDetailResonance);
+        document.getElementById('btn-result-home').addEventListener('click', () => setScene('carousel-scene'));
+        document.getElementById('btn-result-journey').addEventListener('click', openJourney);
+        document.getElementById('btn-journey-back-float').addEventListener('click', () => setScene('carousel-scene'));
+        document.getElementById('btn-mint-mock').addEventListener('click', () => {
+            // 先弹命名框
+            document.getElementById('stamp-name-input').value = '';
+            document.getElementById('stamp-name-modal').classList.add('is-open');
+            setTimeout(() => document.getElementById('stamp-name-input').focus(), 100);
+        });
+
+        function doMint(stampName) {
+            document.getElementById('stamp-name-modal').classList.remove('is-open');
+            let hex='0x'; const buf=new Uint8Array(8); window.crypto.getRandomValues(buf);
+            hex += Array.from(buf,b=>b.toString(16).padStart(2,'0')).join('');
+            // 把名字存进最新旅程记录
+            try {
+                const arr = JSON.parse(localStorage.getItem(STORAGE_JOURNEY)||'[]');
+                if (arr[0]) { arr[0].stampName = stampName; arr[0].minted = true; }
+                localStorage.setItem(STORAGE_JOURNEY, JSON.stringify(arr));
+            } catch(e) {}
+            document.getElementById('result-nft-line').textContent = stampName
+                ? `星球印记 NFT「${stampName}」：已模拟铸造 · ${hex.slice(0,14)}...`
+                : `星球印记 NFT：已模拟铸造 · ${hex.slice(0,18)}...`;
+            runTransitionThen(() => renderStampScene(stampName));
+        }
+
+        document.getElementById('stamp-name-confirm').addEventListener('click', () => {
+            const name = document.getElementById('stamp-name-input').value.trim();
+            doMint(name);
+        });
+        document.getElementById('stamp-name-skip').addEventListener('click', () => {
+            doMint('');
+        });
+        document.getElementById('stamp-name-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const name = document.getElementById('stamp-name-input').value.trim();
+                doMint(name);
+            }
+        });
+        document.getElementById('btn-stamp-nft-back').addEventListener('click', () => {
+            document.getElementById('stamp-nft-page').style.display = 'none';
+            document.getElementById('stamp-overview').style.display = 'flex';
+        });
+
+        // ── 旅程画布：鼠标拖拽横向滚动 ──
+        const journeyCanvas = document.getElementById('journey-canvas');
+        let jDragging = false, jStartX = 0, jScrollLeft = 0;
+        journeyCanvas.addEventListener('mousedown', e => {
+            jDragging = true;
+            jStartX = e.pageX - journeyCanvas.offsetLeft;
+            jScrollLeft = journeyCanvas.scrollLeft;
+            journeyCanvas.style.cursor = 'grabbing';
+            journeyCanvas.style.userSelect = 'none';
+            e.preventDefault();
+        });
+        journeyCanvas.addEventListener('mouseleave', () => {
+            jDragging = false;
+            journeyCanvas.style.cursor = 'grab';
+        });
+        journeyCanvas.addEventListener('mouseup', () => {
+            jDragging = false;
+            journeyCanvas.style.cursor = 'grab';
+            journeyCanvas.style.userSelect = '';
+        });
+        journeyCanvas.addEventListener('mousemove', e => {
+            if (!jDragging) return;
+            e.preventDefault();
+            const x = e.pageX - journeyCanvas.offsetLeft;
+            const walk = (x - jStartX) * 1.2;
+            journeyCanvas.scrollLeft = jScrollLeft - walk;
+        });
+    }
+
+    function applyDrag(dx) {
+        const step=getStep(), maxDelta=step*1.15;
+        let raw = startAngle - dx*0.2;
+        targetAngle = Math.max(startAngle-maxDelta, Math.min(startAngle+maxDelta, raw));
+        velocity = -dx*0.05;
+    }
+    function endDragSnap() {
+        const step=getStep(), delta=targetAngle-startAngle, threshold=step*0.12;
+        let nextIdx=dragStartIndex;
+        if (delta<-threshold) nextIdx=(dragStartIndex+1)%planetsData.length;
+        else if (delta>threshold) nextIdx=(dragStartIndex-1+planetsData.length)%planetsData.length;
+        targetAngle=nearestAngleForIndex(targetAngle,nextIdx); velocity=0;
+    }
+    document.addEventListener('touchstart', e => { if(document.getElementById('carousel-scene').classList.contains('is-active')){ isDragging=true;startX=e.touches[0].clientX;startAngle=targetAngle;dragStartIndex=getIndexFromAngle(targetAngle);velocity=0; }});
+    document.addEventListener('touchmove',  e => { if(document.getElementById('carousel-scene').classList.contains('is-active') && isDragging) applyDrag(e.touches[0].clientX-startX); });
+    document.addEventListener('touchend',   () => { if(isDragging){isDragging=false;endDragSnap();} });
+    document.addEventListener('touchcancel',() => { if(isDragging){isDragging=false;endDragSnap();} });
+    document.addEventListener('mousedown',  e => { if(document.getElementById('carousel-scene').classList.contains('is-active')){ isDragging=true;startX=e.clientX;startAngle=targetAngle;dragStartIndex=getIndexFromAngle(targetAngle);velocity=0; }});
+    document.addEventListener('mousemove',  e => { if(document.getElementById('carousel-scene').classList.contains('is-active') && isDragging) applyDrag(e.clientX-startX); });
+    document.addEventListener('mouseup',    () => { if(isDragging){isDragging=false;endDragSnap();} });
+    document.addEventListener('mouseleave', () => { if(isDragging){isDragging=false;endDragSnap();} });
+
+    window.onload = () => { initPlanets(); initEntry(); initFlowUi(); refreshFuelUI(); initVoiceInput(); };
+</script>
+</body>
+</html>
